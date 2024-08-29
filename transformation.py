@@ -1,15 +1,18 @@
+import sympy as sp
+import numpy as np
+import matplotlib.pyplot as plt
+import sys
 from vector import Vector
 from matrix import Matrix
 from colorama import Fore, Style
 from custom import custom_is_constant, custom_function_filter
 from time import sleep
 from matplotlib.widgets import Slider
-import sympy as sp
-import numpy as np
-import matplotlib.pyplot as plt
-import sys
+from random import uniform
+
 
 PI = np.pi
+COLORS = ['blue', 'green', 'red', 'cyan', 'magenta', 'yellow', 'black', 'white', 'orange', 'purple', 'brown', 'pink', 'gray', 'olive', 'teal']
 
 # Function to translate a vector to another vector
 def translation(v: Vector, u: Vector) -> Vector:
@@ -54,39 +57,16 @@ def reflection(v: Vector, axis: str) -> Vector:
     return reflected_Vector
 
 # Function to rotate a vector about a given point, with a given angle, in a given direction
-def rotation(v: Vector, u: Vector, θ: float, direction=1) -> Vector:
-    if (np.abs(direction) != 1):
-        raise ValueError(Fore.RED + 'Make sure to choose either 1 for clockwise or -1 for anticlockwise!' + Style.RESET_ALL)
-
-    rotation_Matrix = Matrix((2,2), [[np.cos(θ), direction * np.sin(θ)]
-                                    ,[-direction * np.sin(θ), np.cos(θ)]])
+def rotation(v: Vector, u: Vector, θ: float) -> Vector:
+    rotation_Matrix = Matrix((2,2), [[np.cos(θ), np.sin(θ)]
+                                    ,[-np.sin(θ), np.cos(θ)]])
     transformed_v = v.add(u.scale(-1))
     transformed_v_Matrix = transformed_v.toMatrix()
     rotated_Vector = rotation_Matrix.multiply(transformed_v_Matrix).toVector().add(u)
     return rotated_Vector
 
-# Method to plot vectors for visual representation
-def plot_vectors(vectors: list[Vector], colors: list[str], labels=None) -> None:
-    if (len(colors) != len(vectors)):
-        raise ValueError(Fore.RED + "Make sure to input a color for all the vectors!" + Style.RESET_ALL)
-    try:
-        for i, (vector, color) in enumerate(zip(vectors, colors)):
-            plt.quiver(0, 0, vector.values[0], vector.values[1], angles="xy", scale_units="xy", scale=0.5, color=color, label = labels[i] if labels else None)
-    except ValueError:
-        print(Fore.RED + "Invalid colour input, please input correct colour!" + Style.RESET_ALL)
-    plt.rcParams["font.size"] = 7.5
-    plt.xlim(-15, 15)
-    plt.ylim(-15, 15)
-    plt.axhline(0, color='black',linewidth=0.5)
-    plt.axvline(0, color='black',linewidth=0.5)
-    plt.title("Linear transformation")
-    plt.grid(True)
-    plt.gca().set_aspect('equal', adjustable='box')
-    plt.legend()
-    plt.show()
-
-# Method to retrieve function from user input. Constant k for k functions
-def get_function(k: int):
+# Method to retrieve function from user input. Constant k for k functions. Colors are chosen randomly 
+def get_function(k: int, labels=[]):
     funcs = []
     print("Input a function in terms of x (no constants!), (Use (* /) for multiplication/division, (+ -) for addition and subtraction and (**) for powers, exp(x) for e^x)")
     sleep(2)
@@ -100,12 +80,13 @@ def get_function(k: int):
                     raise sp.SympifyError(f"'{u_input}' is not a valid mathematical expression.")
                 
                 x = sp.symbols("x")
+                labels.append(f"f{i}(x) = {str(func)}")
                 funcs.append(sp.lambdify(x, func, 'numpy'))
                 break
             except sp.SympifyError:
                 print(Fore.LIGHTMAGENTA_EX + 'Invalid form of function, make sure function is valid and all variables are denoted with the letter "x" and no constants are inputted! Try again...' + Style.RESET_ALL)
                 sleep(2)
-    return funcs 
+    return funcs, labels
 
 # Method to retrieve the number of functions being plotted from user input
 def get_function_numbers() -> int:
@@ -118,6 +99,40 @@ def get_function_numbers() -> int:
         except TypeError:
             print(Fore.LIGHTMAGENTA_EX + 'Make sure you input a positive whole number!' + Style.RESET_ALL)
             sleep(2.0)
+
+# Function which returns a tuple containing random rgb values for a random color
+def get_random_color() -> tuple:
+    r = uniform(0, 1)
+    g = uniform(0, 1)
+    b = uniform(0, 1)
+    return (r, g, b)
+
+def get_axis_lim() -> tuple:
+    """while True:
+        try:
+            set_axis = input("Do you want a custom range on the function y (yes) or n (no)? ")
+            if (set_axis != "y") and (set_axis != "n"):
+                raise ValueError 
+            break
+        except ValueError:
+            print(Fore.LIGHTMAGENTA_EX + 'Make sure you input either y (yes) or n (no)!' + Style.RESET_ALL)
+
+    if (set_axis == "n"):
+        value = 100000
+        return -value, value, -value, value """
+    while True:
+        try:
+            min_x = int(input("What is the minimum value of x you want displayed? "))
+            max_x = int(input("What is the maximum value of x you want displayed? "))
+            min_y = int(input("What is the minimum value of y you want displayed? "))
+            max_y = int(input("What is the maximum value of y you want displayed? "))
+            if (max_x <= min_x) or (max_y <= min_y):
+                raise ValueError
+            return min_x, max_x, min_y, max_y
+        except (TypeError, ValueError):
+            print(Fore.LIGHTMAGENTA_EX + 'Make sure you input a whole number and chose a valid range!' + Style.RESET_ALL)
+
+
 
 # Helper function to transform_function to help perform transformations depending on the type of transformation
 def transform_values(x, y, t, *args):
@@ -170,11 +185,10 @@ def transform_function(f, x: list[float]) -> tuple[list[float], list[float]]:
                 while True:
                     try:
                         angle = float(input("Input the angle you want to rotate by: "))
-                        direction = int(input("Choose a direction -1 (anti-clockwise) or 1 (clockwise): "))
                         u = Vector(2, [float(x) for x in input("Input 2 components (separated by spaces) of the point you want to rotate about : ").split()])
-                        return transform_values(x, y, rotation, u, angle * PI/180, direction)
+                        return transform_values(x, y, rotation, u, angle * PI/180)
                     except ValueError:
-                        print(Fore.LIGHTMAGENTA_EX + "Make sure to input real number for angle and either -1 or 1 for direction of rotation. Ensure coordinates are typed properly. Try again..." + Style.RESET_ALL)
+                        print(Fore.LIGHTMAGENTA_EX + "Make sure to input real number for angle. Ensure coordinates are typed properly. Try again..." + Style.RESET_ALL)
                         sleep(2)
             case "exit":
                 sys.exit()
@@ -184,7 +198,7 @@ def transform_function(f, x: list[float]) -> tuple[list[float], list[float]]:
 
 
 # Method to plot functions for visual representation
-def plot_functions(x_arr: list[list[float]], y_arr: list[list[float]], colors: list[str], labels=None) -> None:
+def plot_functions(x_arr: list[list[float]], y_arr: list[list[float]], colors: tuple, labels=None) -> None:
     if (len(colors) != len(y_arr)):
         raise ValueError(Fore.RED + "Make sure to input a color for all the functions!" + Style.RESET_ALL)
     try:
@@ -203,26 +217,42 @@ def plot_functions(x_arr: list[list[float]], y_arr: list[list[float]], colors: l
     plt.legend()
     plt.show()
 
+    # Method to plot vectors for visual representation
+def plot_vectors(vectors: list[Vector], colors: list[str], labels=None) -> None:
+    if (len(colors) != len(vectors)):
+        raise ValueError(Fore.RED + "Make sure to input a color for all the vectors!" + Style.RESET_ALL)
+    try:
+        for i, (vector, color) in enumerate(zip(vectors, colors)):
+            plt.quiver(0, 0, vector.values[0], vector.values[1], angles="xy", scale_units="xy", scale=0.5, color=color, label = labels[i] if labels else None)
+    except ValueError:
+        print(Fore.RED + "Invalid colour input, please input correct colour!" + Style.RESET_ALL)
+    plt.rcParams["font.size"] = 7.5
+    plt.xlim(-15, 15)
+    plt.ylim(-15, 15)
+    plt.axhline(0, color='black',linewidth=0.5)
+    plt.axvline(0, color='black',linewidth=0.5)
+    plt.title("Linear transformation")
+    plt.grid(True)
+    plt.gca().set_aspect('equal', adjustable='box')
+    plt.legend()
+    plt.show()
+
 # Main function
 def main():
     k = get_function_numbers()
-    f_arr = get_function(k)
-    min_x = int(input("What is the minimum value of x you want displayed? "))
-    max_x = int(input("What is the maximum value of x you want displayed? "))
-    min_y = int(input("What is the minimum value of y you want displayed? "))
-    max_y = int(input("What is the maximum value of y you want displayed? "))
-    x_arr, y_arr, colors, labels = [], [], [], []
+    f_arr, labels = get_function(k)
+    min_x, max_x, min_y, max_y = get_axis_lim()
+    x_arr, y_arr, colors = [], [], []
     x = np.linspace(min_x, max_x, num=(max_x-min_x)*10)
     for i, f in enumerate(f_arr):
         x_filtered, y_filtered = custom_function_filter(x, f(x), min_x, max_x, min_y, max_y)
         x_arr.append(x_filtered)
         y_arr.append(y_filtered) 
-        colors.append("blue")
-        labels.append(f"f{i}(x)")
+        colors.append(get_random_color())
         x_transformed, y_transformed = custom_function_filter(*transform_function(f, x), min_x, max_x, min_y, max_y)
         x_arr.append(x_transformed)
         y_arr.append(y_transformed)
-        colors.append("green")
+        colors.append(get_random_color())
         labels.append(f"transformed f{i}(x)")
     plot_functions(x_arr, y_arr, colors=colors, labels=labels)
 
