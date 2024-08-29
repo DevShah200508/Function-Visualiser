@@ -73,6 +73,7 @@ def get_axis_lim() -> tuple:
         except ValueError:
             print(Fore.LIGHTMAGENTA_EX + 'Make sure you choose a valid range, maximum value cannot be smaller than minimum value!' + Style.RESET_ALL)
 
+# Main function
 def main():
     func_arr, func_labels = get_function(get_function_numbers()) # Retrieve all user inputted functions 
     min_x, max_x, min_y, max_y = get_axis_lim() # Get the axis limits for the domain and range of the graph you want displayed 
@@ -151,6 +152,7 @@ def main():
 
         fig.canvas.draw_idle()
 
+    # Calls the update function when value of slider/button is changed 
     rotation_slider.on_changed(update_rotation)
     rotation_center_x_slider.on_changed(update_rotation)
     rotation_center_y_slider.on_changed(update_rotation)
