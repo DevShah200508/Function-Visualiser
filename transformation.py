@@ -12,7 +12,6 @@ from random import uniform
 
 
 PI = np.pi
-COLORS = ['blue', 'green', 'red', 'cyan', 'magenta', 'yellow', 'black', 'white', 'orange', 'purple', 'brown', 'pink', 'gray', 'olive', 'teal']
 
 # Function to translate a vector to another vector
 def translation(v: Vector, u: Vector) -> Vector:
@@ -108,18 +107,6 @@ def get_random_color() -> tuple:
     return (r, g, b)
 
 def get_axis_lim() -> tuple:
-    """while True:
-        try:
-            set_axis = input("Do you want a custom range on the function y (yes) or n (no)? ")
-            if (set_axis != "y") and (set_axis != "n"):
-                raise ValueError 
-            break
-        except ValueError:
-            print(Fore.LIGHTMAGENTA_EX + 'Make sure you input either y (yes) or n (no)!' + Style.RESET_ALL)
-
-    if (set_axis == "n"):
-        value = 100000
-        return -value, value, -value, value """
     while True:
         try:
             min_x = int(input("What is the minimum value of x you want displayed? "))
