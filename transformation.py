@@ -7,11 +7,11 @@ from colorama import Fore, Style
 # Store PI as a constant
 PI = np.pi
 
-# Function to translate a vector to another vector
+# Function to translate a vector (v) by another vector (u)
 def translation(v: Vector, u: Vector) -> Vector:
     return v.add(u)
 
-# Function to project a vector onto another vector
+# Function to project a vector (v) onto another vector (u)
 def projection(v: Vector, u: Vector) -> Vector:
     u_Matrix = u.toMatrix()
     v_Matrix = v.toMatrix()
@@ -35,21 +35,16 @@ def scaling(v: Vector, kx: float, ky: float) -> Vector:
     scaled_Vector = scaling_Matrix.multiply(v_Matrix).toVector()
     return scaled_Vector
 
-# Function to reflect a vector in a given axis
-def reflection(v: Vector, axis: str) -> Vector:
-    if (axis == "x"):
-        reflection_Matrix = Matrix((2,2), [[1, 0]
-                                        ,[0, -1]])
-    elif (axis == "y"):
-        reflection_Matrix = Matrix((2,2), [[-1, 0]
-                                        ,[0, 1]])
-    else:
-        raise ValueError(Fore.RED + 'Make sure to choose either "x" for x axis or "y" for y axis!' + Style.RESET_ALL)
+# Function to reflect a vector in a given direction (u)
+def reflection(v: Vector, u: Vector, axis: str) -> Vector:
+    v_u_angle = u.angle(Vector(2, [1,0]))
+    reflection_Matrix = Matrix((2,2), [[np.cos(2*v_u_angle), np.sin(v_u_angle)]
+                                       ,[np.sin(2*v_u_angle), -np.cos(v_u_angle)]])
     v_Matrix = v.toMatrix()
     reflected_Vector = reflection_Matrix.multiply(v_Matrix).toVector()
     return reflected_Vector
 
-# Function to rotate a vector about a given point, with a given angle, in a given direction
+# Function to rotate a vector about a given point (u) by an angle (θ)
 def rotation(v: Vector, u: Vector, θ: float) -> Vector:
     rotation_Matrix = Matrix((2,2), [[np.cos(θ), np.sin(θ)]
                                     ,[-np.sin(θ), np.cos(θ)]])
