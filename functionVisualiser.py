@@ -63,6 +63,7 @@ def get_random_color() -> tuple:
     b = uniform(0, 1)
     return (r, g, b)
 
+# Method to take the visual bounds of the graph from the user
 def get_axis_lim() -> tuple:
     while True:
         try:
@@ -78,6 +79,20 @@ def get_axis_lim() -> tuple:
         except ValueError:
             print(Fore.LIGHTMAGENTA_EX + 'Make sure you choose a valid range (only 4 values inputted), maximum value cannot be smaller than minimum value!' + Style.RESET_ALL)
 
+# Method to hide sliders from the screen
+def hide_sliders(sliders):
+    for slider in sliders:
+        slider.ax.set_visible(False)       
+        slider.label.set_visible(False)    
+        slider.valtext.set_visible(False)  
+
+# Method to show sliders on the screen
+def show_sliders(sliders):
+    for slider in sliders:
+        slider.ax.set_visible(True)        
+        slider.label.set_visible(True)    
+        slider.valtext.set_visible(True)   
+
 # Main function
 def main():
     func_arr, func_labels = get_function(get_function_numbers()) # Retrieve all user inputted functions 
@@ -85,8 +100,8 @@ def main():
     value = int(np.ceil(max(100 + abs(max_x), 100 + abs(min_x)))) # Ensures function is plotted out the visible view of the graph 
     x = np.linspace(-value, value, num= value*20) 
 
-    fig, ax = plt.subplots()
-    plt.subplots_adjust(left=0.3, bottom=0.35)
+    fig, ax = plt.subplots() # Automatically make subplots within the main plot
+    plt.subplots_adjust(left=0.3, bottom=0.35) # Create space for buttons and sliders
     lines = [] # Stores all functions/lines
     selected_lines = [] # Stores all the functions selected for transformation
     current_sliders = [] # Stores all the current sliders needing to be displayed on the screen
@@ -110,7 +125,7 @@ def main():
     ax.grid(True)
     ax.legend()
 
-    # Creation of initial sliders and buttons for all the neccessary transformations on a function
+    # Creation of initial sliders for all the neccessary transformations on a function
     ax_rotation_slider = plt.axes(SLIDER_POS_1, facecolor='lightgoldenrodyellow')
     rotation_slider = Slider(ax_rotation_slider, 'Rotation', -360, 360, valinit=0.0)
 
@@ -120,14 +135,47 @@ def main():
     ax_rotation_center_y_slider = plt.axes(SLIDER_POS_3, facecolor='lightgoldenrodyellow')
     rotation_center_y_slider = Slider(ax_rotation_center_y_slider, 'Rotation center (y)', min_y, max_y, valinit=(min_y+max_y)/2)
 
+    # Add the rotation sliders into the current sliders list as this will be the initial chosen transformation
     current_sliders.extend([rotation_slider, rotation_center_x_slider, rotation_center_y_slider])
 
+    # Set up the sliders for the shearing 
+    ax_shearing_kx_slider = plt.axes(SLIDER_POS_1, facecolor='lightgoldenrodyellow')
+    shearing_kx_slider = Slider(ax_shearing_kx_slider, 'kx shearing', -10, 10, valinit=1.0)
+
+    ax_shearing_ky_slider = plt.axes(SLIDER_POS_2, facecolor='lightgoldenrodyellow')
+    shearing_ky_slider = Slider(ax_shearing_ky_slider, 'ky shearing', -10, 10, valinit=1.0)
+
+    # Set up the sliders for scaling 
+    ax_scaling_kx_slider = plt.axes(SLIDER_POS_1, facecolor='lightgoldenrodyellow')
+    scaling_kx_slider = Slider(ax_scaling_kx_slider, 'kx scaling', -10, 10, valinit=1.0)
+
+    ax_scaling_ky_slider = plt.axes(SLIDER_POS_2, facecolor='lightgoldenrodyellow')
+    scaling_ky_slider = Slider(ax_scaling_ky_slider, 'ky scaling', -10, 10, valinit=1.0)
+
+    # Set up the sliders for reflection
+    ax_reflection_x_slider = plt.axes(SLIDER_POS_1, facecolor='lightgoldenrodyellow')
+    reflection_x_slider = Slider(ax_reflection_x_slider, 'x reflection', -1, 1, valinit=1.0)
+
+    ax_reflection_y_slider = plt.axes(SLIDER_POS_2, facecolor='lightgoldenrodyellow')
+    reflection_y_slider = Slider(ax_reflection_y_slider, 'y reflection', -1, 1, valinit=0.0)
+
+    # Set up the sliders for translation
+    ax_translation_x_slider = plt.axes(SLIDER_POS_1, facecolor='lightgoldenrodyellow')
+    translation_x_slider = Slider(ax_translation_x_slider, 'x translation', min_x, max_x, valinit=0.0)
+
+    ax_translation_y_slider = plt.axes(SLIDER_POS_2, facecolor='lightgoldenrodyellow')
+    translation_y_slider = Slider(ax_translation_y_slider, 'y translation', min_y, max_y, valinit=0.0)
+
+    # CheckButtons and RadioButtons for selecting function(s) and transformation(s)
     ax_transformation_selector = plt.axes([0.01, 0.35, 0.2, 0.2], facecolor='lightgreen')
     transformation_selector = RadioButtons(ax_transformation_selector, RADIOBUTTON_LABELS)
 
     ax_function_selector = plt.axes([0.01, 0.6, 0.2, 0.2], facecolor='lightgoldenrodyellow')
     visibility = [True] * len(func_arr)
     function_selector = CheckButtons(ax_function_selector, func_labels, visibility)
+
+    # Hide all the sliders which are not involved with rotation 
+    hide_sliders([shearing_kx_slider, shearing_ky_slider, scaling_kx_slider, scaling_ky_slider, reflection_x_slider, reflection_y_slider, translation_x_slider, translation_y_slider])
 
     # Method to deal with change in the rotation sliders
     def update_rotation(val) -> None:
@@ -142,53 +190,26 @@ def main():
         
         fig.canvas.draw_idle()
 
+    # Method to change the sliders based on what transformation is selected 
     def transformation_selection(label) -> None:
-        for slider in current_sliders:
-            slider.ax.remove()
+        hide_sliders(current_sliders)
         current_sliders.clear()
 
         match label:
             case "Rotation":
-                ax_rotation_slider = plt.axes(SLIDER_POS_1, facecolor='lightgoldenrodyellow')
-                rotation_slider = Slider(ax_rotation_slider, 'Rotation', -360, 360, valinit=0.0)
-
-                ax_rotation_center_x_slider = plt.axes(SLIDER_POS_2, facecolor='lightgoldenrodyellow')
-                rotation_center_x_slider = Slider(ax_rotation_center_x_slider, 'Rotation center (x)', min_x, max_x, valinit=(min_x+max_x)/2)
-
-                ax_rotation_center_y_slider = plt.axes(SLIDER_POS_3, facecolor='lightgoldenrodyellow')
-                rotation_center_y_slider = Slider(ax_rotation_center_y_slider, 'Rotation center (y)', min_y, max_y, valinit=(min_y+max_y)/2)
-
                 current_sliders.extend([rotation_slider, rotation_center_x_slider, rotation_center_y_slider])
             case "Shearing":
-                ax_shearing_kx_slider = plt.axes(SLIDER_POS_1, facecolor='lightgoldenrodyellow')
-                shearing_kx_slider = Slider(ax_shearing_kx_slider, 'kx shearing', -10, 10, valinit=1.0)
-
-                ax_shearing_ky_slider = plt.axes(SLIDER_POS_2, facecolor='lightgoldenrodyellow')
-                shearing_ky_slider = Slider(ax_shearing_ky_slider, 'ky shearing', -10, 10, valinit=1.0)
                 current_sliders.extend([shearing_kx_slider, shearing_ky_slider])
             case "Scaling": 
-                ax_scaling_kx_slider = plt.axes(SLIDER_POS_1, facecolor='lightgoldenrodyellow')
-                scaling_kx_slider = Slider(ax_scaling_kx_slider, 'kx scaling', -10, 10, valinit=1.0)
-
-                ax_scaling_ky_slider = plt.axes(SLIDER_POS_2, facecolor='lightgoldenrodyellow')
-                scaling_ky_slider = Slider(ax_scaling_ky_slider, 'ky scaling', -10, 10, valinit=1.0)
                 current_sliders.extend([scaling_kx_slider, scaling_ky_slider])
             case "Reflection":
-                ax_reflection_x_slider = plt.axes(SLIDER_POS_1, facecolor='lightgoldenrodyellow')
-                reflection_x_slider = Slider(ax_reflection_x_slider, 'x reflection', -1, 1, valinit=1.0)
-
-                ax_reflection_y_slider = plt.axes(SLIDER_POS_2, facecolor='lightgoldenrodyellow')
-                reflection_y_slider = Slider(ax_reflection_y_slider, 'y reflection', -1, 1, valinit=0.0)
                 current_sliders.extend([reflection_x_slider, reflection_y_slider])
             case _:
-                ax_translation_x_slider = plt.axes(SLIDER_POS_1, facecolor='lightgoldenrodyellow')
-                translation_x_slider = Slider(ax_translation_x_slider, 'x translation', min_x, max_x, valinit=0.0)
+                current_sliders.extend([translation_x_slider, translation_y_slider])
 
-                ax_translation_y_slider = plt.axes(SLIDER_POS_2, facecolor='lightgoldenrodyellow')
-                translation_y_slider = Slider(ax_translation_y_slider, 'y translation', min_y, max_y, valinit=0.0)
-                current_sliders.extend([translation_x_slider, translation_y_slider])            
+        show_sliders(current_sliders)
+        fig.canvas.draw_idle()
 
-    
     # Method to deal with changes to functions being selected 
     def toggle_plot(label) -> None:
         index = func_labels.index(label) # Finds the index of the label within func_labels
@@ -196,10 +217,10 @@ def main():
 
         if line in selected_lines:
             selected_lines.remove(line) # Remove line as it is being toggled off
-            line.set_alpha(0.3) # Set non selected lines to transparent 
+            line.set_alpha(0.3) # Set non selected line to transparent 
         else:
             selected_lines.append(line) # Add line as it is being toggled on
-            line.set_alpha(1.0) # Set selected lines to
+            line.set_alpha(1.0) # Set selected line to opaque
 
         fig.canvas.draw_idle()
 
