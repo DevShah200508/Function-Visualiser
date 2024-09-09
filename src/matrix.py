@@ -4,36 +4,7 @@ from colorama import Fore, Style
 from vector import Vector
 from custom import custom_round
 
-"""
-Class Name: Matrix
-
-Description:
-    A matrix class useful for any complex matrix operations
-
-Attributes:
-    - d (tuple(int, int)): Represents the dimensions of the matrix as tuple 
-    - values (list[list[float]]): Stores the contents of the matrix in the form of a nested list
-
-Methods:
-      (All methdos contain logging bool which allows for terminal output of result if set to True)
-    - scale(k: float, logging: bool) -> Matrix: Scales a matrix and produces a new one as a result.
-    - add(m: Matrix, logging: bool) -> Matrix: Adds current matrix with inputted one and produces a new matrix (dimensions of both matrices need to be the same).
-    - multiply(m: Matrix, logging: bool) -> Matrix: Multiplies the current matrix with inputted one and produces new matrix (# of columns of first matrix = # rows of 2nd matrix)
-    - determinant() -> float: Computes the determinant of a square matrix (n x n)
-    - minorMatrix(p1: int, p2: int, logging: bool) -> Matrix: returns the minor matrix at zero-indexed [p1][p2] positions
-    - transpose() -> Matrix: Returns the transposed matrix of the current matrix 
-    - inverse() -> Matrix: Returns the inverse matrix of the current matrix 
-    - toVector() -> Vector: converts a matrix, in the form (n x 1), into a vector 
-
-Example:
-    # Example code showing how to create an instance of the class and use its methods.
-    m1 = Vector((2,2), [[2, 2], [1, 4]])
-    det = m1.determinant(logging=True)
-    inverse = m1.inverse()
-    minorMatrix = m1.minorMatrix(0, 1, logging=True)
-    transpose = m1.transpose()
-"""
-
+"""Class containing all methods to perform matrix operations"""
 class Matrix:
     
     # Constructor for a matrix 

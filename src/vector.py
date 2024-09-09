@@ -3,33 +3,7 @@ import numpy as np
 from colorama import Fore, Style
 from custom import custom_round
 
-"""
-Class Name: Vector
-
-Description:
-    A vector class useful for any complex vector operations
-
-Attributes:
-    - d (int): Represents the dimensions of the vector
-    - values (list[float]): Stores the contents of the vector in the form of a list/array
-
-Methods:
-    (All methdos contain logging bool which allows for terminal output of result if set to True)
-    - scale(k: float, logging: bool) -> Vector: Scales a vector and produces a new one as a result.
-    - add(v: Vector, logging: bool) -> Vector: Adds current vector with inputted one and produces a new vector.
-    - magnitude(logging: bool) -> float: Computes the eularian magnitude of a vector.
-    - normalize(logging: bool) -> Vector: normalize's a vector (magnitude of vector = 1)
-    - dotProduct(v: Vector, logging: bool) -> float: Computes the dot product between 2 vectors.
-    - angle(v: Vector, logging: bool) -> float: Computes the angle between 2 vectors.
-    - toMatrix() -> Matrix: converts a vector into a matrix
-
-Example:
-    # Example code showing how to create an instance of the class and use its methods.
-    v1 = Vector([1, 2])
-    v1.normalize()
-    v1.magnitude(logging=True)
-"""
-
+"""Class containing all methods to perform vector operations"""
 class Vector:
     
     # Constructor for vector object
