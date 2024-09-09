@@ -1,12 +1,6 @@
-import sys
-import os
 import unittest
-
-# Insert the path to the src folder in the path variable 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
-
-from vector import Vector
-from matrix import Matrix 
+from src.transformations.vector import Vector
+from src.transformations.matrix import Matrix 
 
 class MatrixTest(unittest.TestCase):
 

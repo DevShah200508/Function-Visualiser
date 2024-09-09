@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from vector import Vector
-from matrix import Matrix
 from colorama import Fore, Style
+from .vector import Vector
+from .matrix import Matrix
 
 # Store PI as a constant
 PI = np.pi

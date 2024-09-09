@@ -1,7 +1,7 @@
 import math
 import numpy as np
 from colorama import Fore, Style
-from custom import custom_round
+from src.custom import custom_round
 
 """Class containing all methods to perform vector operations"""
 class Vector:
@@ -68,7 +68,7 @@ class Vector:
     
     # Method to represent a vector as a matrix 
     def toMatrix(self):
-        from matrix import Matrix
+        from .matrix import Matrix
         values = [[row] for row in self.values]
         return Matrix(values)
     
@@ -103,8 +103,6 @@ class Vector:
     # Detailed representation of the vector object for debugging
     def __repr__(self):
         return f"Vector(dimensions={self.d!r}, components={self.values!r})"
-
-
 
 # Main function of the script
 def main():

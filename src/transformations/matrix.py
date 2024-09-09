@@ -1,8 +1,8 @@
 import math
 import numpy as np
 from colorama import Fore, Style
-from vector import Vector
-from custom import custom_round
+from .vector import Vector
+from src.custom import custom_round
 
 """Class containing all methods to perform matrix operations"""
 class Matrix:
@@ -183,7 +183,9 @@ class Matrix:
     def __eq__(self, m):
         try:
             self.__typeCheckMatrix(m)
+            print("hello")
             if (self.d == m.d) and (np.allclose(self.values, m.values)):
+                print("hello2")
                 return True
             return False
         except TypeError:

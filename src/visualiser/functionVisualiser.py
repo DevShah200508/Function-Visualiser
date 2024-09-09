@@ -1,14 +1,15 @@
 import sys 
+import os
 import warnings
 import matplotlib.pyplot as plt
 import numpy as np
 import sympy as sp
-import transformation as tr
-from vector import Vector 
 from colorama import Fore, Style
-from custom import custom_is_constant, custom_test_valid_function, custom_get_random_color
 from matplotlib.widgets import Slider, CheckButtons, RadioButtons, Button
 from time import sleep
+from src.transformations import transformation as tr
+from src.transformations.vector import Vector
+from src.custom import custom_is_constant, custom_test_valid_function, custom_get_random_color 
 
 # Constants that are used later within the script
 RADIOBUTTON_LABELS = ["Rotation", "Shearing", "Scaling", "Reflection", "Translation"]
