@@ -1,3 +1,5 @@
+import sys 
+import warnings
 import matplotlib.pyplot as plt
 import numpy as np
 import sympy as sp
@@ -10,25 +12,27 @@ from time import sleep
 
 # Constants that are used later within the script
 RADIOBUTTON_LABELS = ["Rotation", "Shearing", "Scaling", "Reflection", "Translation"]
-SCALE_POINT_X = 1/8
-SCALE_POINT_Y = 1/15
+SCALE_POINT_X, SCALE_POINT_Y = 1/15, 1/15
 POINT_INCH_SCALE = 1/72
 SLIDER_POS_1 = [0.1, 0.10, 0.65, 0.03]
 SLIDER_POS_2 = [0.1, 0.15, 0.65, 0.03]
 SLIDER_POS_3 = [0.1, 0.20, 0.65, 0.03]
+INITIAL_RESET_SLIDER_POS = [0.85, 0.12, 0.1, 0.1]
 
 # Method to retrieve function from user input. Constant k for k functions. Colors are chosen randomly. Labels are returned for visual information
 def get_function(k: int, labels=[]) -> tuple:
     funcs = []
     print("Input a function in terms of x (no constants!), (Use (* /) for multiplication/division, (+ -) for addition and subtraction and (**) for powers, exp(x) for e^x)")
-    sleep(2)
+    sleep(1)
     for i in range(k):
         while True:
-            u_input = input(f"f{i}(x) = ")
+            user_input = input(f"f{i}(x): ")
+            if (user_input == "exit"):
+                sys.exit()
             try:
-                expr = sp.sympify(u_input)
-                if (isinstance(expr, sp.Symbol) and u_input != "x") or custom_is_constant(u_input):
-                    raise sp.SympifyError(f"'{u_input}' is not a valid mathematical expression.")
+                expr = sp.sympify(user_input)
+                if (isinstance(expr, sp.Symbol) and user_input != "x") or custom_is_constant(user_input):
+                    raise sp.SympifyError(f"'{user_input}' is not a valid mathematical expression.")
                 x = sp.symbols("x")
                 func = sp.lambdify(x, expr, 'numpy')
                 custom_test_valid_function(func)
@@ -36,7 +40,7 @@ def get_function(k: int, labels=[]) -> tuple:
                 labels.append(f"f{i}: {str(expr)}")
                 break
             except (sp.SympifyError, TypeError):
-                print(Fore.LIGHTMAGENTA_EX + 'Invalid form of function, make sure function is valid and all variables are denoted with the letter "x" and no constants are inputted! Try again...' + Style.RESET_ALL)
+                print(Fore.LIGHTMAGENTA_EX + 'Invalid form of function, make sure function is valid and all variables are denoted with the letter "x". Ensure no only constant input! Try again...' + Style.RESET_ALL)
                 sleep(2)
     return funcs, labels
 
@@ -44,7 +48,10 @@ def get_function(k: int, labels=[]) -> tuple:
 def get_function_numbers() -> int:
     while True:
         try:
-            k = int(input("Please input the number of functions you want to plot (maximum 8 functions): "))
+            user_input = input("Please input the number of functions you want to plot (maximum 8 functions): ")
+            if (user_input == "exit"):
+                sys.exit()
+            k = int(user_input)
             if (k < 1) or (k > 8):
                 raise ValueError
             return k
@@ -58,7 +65,7 @@ def get_function_numbers() -> int:
 def get_axis_lim() -> tuple:
     while True:
         try:
-            bounds = input("Input bounds of x and y in the form min_x, max_x, min_y, max_y (separeted by ','): ").split(",")
+            bounds = input("Input bounds of x and y in the form min_x, max_x, min_y, max_y (separeted by ',', and with opening and closing '()'): ").strip("()").split(",")
             if len(bounds) != 4:
                 raise ValueError
             min_x, max_x, min_y, max_y = [float(num) for num in bounds]
@@ -84,10 +91,12 @@ def show_widgets(widgets) -> None:
 
 # Main function
 def visualiser_main():
+    print(Fore.LIGHTGREEN_EX + "Welcome to the visual function transformer, you can exit at any point by typing 'exit' in the command line" + Style.RESET_ALL)
+    sleep(1.0)
     func_arr, func_labels = get_function(get_function_numbers()) # Retrieve all user inputted functions 
     min_x, max_x, min_y, max_y = get_axis_lim() # Get the axis limits for the domain and range of the graph you want displayed 
     value = int(np.ceil(max(100 + abs(max_x), 100 + abs(min_x)))) # Ensures function is plotted out the visible view of the graph 
-    x = np.linspace(-value, value, num= value*20) 
+    x = np.linspace(-value, value, num= value*50) 
 
     lines = [] # Stores all functions/lines
     selected_lines = [] # Stores all the functions selected for transformation
@@ -107,6 +116,9 @@ def visualiser_main():
         selected_lines.append(line) # Initially select all the lines
 
     current_data = initial_data[:] # This stores the current (x, y) data state of all the functions at any given time
+    rotation_center_point, = ax.plot((min_x+max_x)/2, (min_y+max_y)/2, color="black", marker="x") # Mark for the center point of rotation
+    reflection_line, = ax.plot(x, [0]*len(x), linestyle='--', color='grey', label='Line of reflection') # Line of reflection
+    reflection_line.set_visible(False)
 
     # Basic set up for the visuals of the graph
     plt.rcParams["font.size"] = 7.5
@@ -120,7 +132,10 @@ def visualiser_main():
     ax.set_title('Plot of functions')
     ax.grid(True)
     ax.legend()
-    fig.text(0.15, 0.95, "Function transformer", fontsize=20, ha="center")
+    fig.text(0.10, 0.95, "Function transformer", fontsize=20, fontweight='bold', ha="center", va="center")
+    fig.text(0.13, 0.90, "• Use Ctrl + LMB to mark points and Ctrl + RMB to remove marked points from the axes.", fontsize=8, ha="center", va="center") 
+    fig.text(0.13, 0.88, "• Toggle the function(s) you want to transform and select a transformation below.", fontsize=8, ha="center", va="center")
+    fig.text(0.13, 0.86, "• Use the sliders to vary the parameters of the specified transformation.", fontsize=8, ha="center", va="center")
 
     # Creation of initial sliders for all the neccessary transformations on a function
     ax_rotation_slider = plt.axes(SLIDER_POS_1, facecolor='lightgoldenrodyellow')
@@ -158,10 +173,10 @@ def visualiser_main():
 
     # Set up the sliders for translation
     ax_translation_x_slider = plt.axes(SLIDER_POS_1, facecolor='lightgoldenrodyellow')
-    translation_x_slider = Slider(ax_translation_x_slider, 'x translation', min_x, max_x, valinit=0.0)
+    translation_x_slider = Slider(ax_translation_x_slider, 'x translation', -abs(max_x-min_x), abs(max_x-min_x), valinit=0.0)
 
     ax_translation_y_slider = plt.axes(SLIDER_POS_2, facecolor='lightgoldenrodyellow')
-    translation_y_slider = Slider(ax_translation_y_slider, 'y translation', min_y, max_y, valinit=0.0)
+    translation_y_slider = Slider(ax_translation_y_slider, 'y translation', -abs(max_y-min_y), abs(max_y-min_y), valinit=0.0)
 
     # Add the rotation sliders into the current sliders list as this will be the initial chosen transformation
     current_widgets.extend([rotation_slider, rotation_center_x_slider, rotation_center_y_slider])
@@ -178,13 +193,14 @@ def visualiser_main():
     function_selector = CheckButtons(ax_function_selector, func_labels, visibility)
     
     # Button for resetting any transformations to the plot 
-    ax_reset_button = plt.axes([0.85, 0.05, 0.1, 0.1], facecolor='lightblue')
+    ax_reset_button = plt.axes(INITIAL_RESET_SLIDER_POS, facecolor='lightblue')
     reset_button = Button(ax_reset_button, label="Reset", hovercolor='dodgerblue')
 
     # Method to deal with change in the rotation sliders
     def update_rotation(val) -> None:
         angle = rotation_slider.val
-        center_x, center_y = rotation_center_x_slider.val, rotation_center_y_slider.val 
+        center_x, center_y = rotation_center_x_slider.val, rotation_center_y_slider.val
+        update_rotation_center_point(center_x, center_y) # Update the position of the center point the axes
         for line in selected_lines:
             index = lines.index(line)
             x0, y0 = current_data[index]
@@ -193,11 +209,15 @@ def visualiser_main():
             line.set_ydata(y1)
         
         fig.canvas.draw_idle()
+    
+    # Method to deal with change in the rotation_center sliders
+    def update_rotation_center_point(center_x: float, center_y: float) -> None:
+        rotation_center_point.set_xdata([center_x])
+        rotation_center_point.set_ydata([center_y])
 
     # Method to deal with change in the shearing sliders
     def update_shearing(val) -> None:
-        kx = shearing_kx_slider.val
-        ky = shearing_ky_slider.val
+        kx, ky = shearing_kx_slider.val, shearing_ky_slider.val
         for line in selected_lines:
             index = lines.index(line)
             x0, y0 = current_data[index]
@@ -209,8 +229,7 @@ def visualiser_main():
 
     # Method to deal with change in the scaling sliders
     def update_scaling(val) -> None:
-        kx = scaling_kx_slider.val
-        ky = scaling_ky_slider.val 
+        kx, ky = scaling_kx_slider.val, scaling_ky_slider.val
         for line in selected_lines:
             index = lines.index(line)
             x0, y0 = current_data[index]
@@ -219,11 +238,20 @@ def visualiser_main():
             line.set_ydata(y1)
         
         fig.canvas.draw_idle()
+
+    # Method to update the line of reflection when the reflection sliders values are altered
+    def update_reflection_line(val) -> None:    
+        warnings.filterwarnings("ignore", category=RuntimeWarning) # Supress division by 0 warnings when computing gradient for vertical line 
+        x_component, y_component = reflection_x_slider.val, reflection_y_slider.val
+        gradient = y_component/x_component
+        f = lambda x: gradient*x
+        y = f(x)
+        reflection_line.set_ydata(y)
+       
     
-    # Method to deal with change in the reflection sliders
+    # Method to perform reflection when the reflection button is clicked 
     def update_reflection(val) -> None:
-        x_component = reflection_x_slider.val
-        y_component = reflection_y_slider.val
+        x_component, y_component = reflection_x_slider.val, reflection_y_slider.val
         for line in selected_lines:
             index = lines.index(line)
             x0, y0 = current_data[index]
@@ -236,12 +264,11 @@ def visualiser_main():
     
     # Method to deal with change in the translation sliders
     def update_translation(val) -> None:
-        x_component = translation_x_slider.val
-        y_component = translation_y_slider.val
+        x_component, y_component = translation_x_slider.val, translation_y_slider.val
         for line in selected_lines:
             index = lines.index(line)
             x0, y0 = current_data[index]
-            x1, y1 = tr.transform_values(x0, y0, tr.translation, Vector(2, [x_component, y_component]))
+            x1, y1 = tr.transform_values(x0, y0, tr.translation, Vector([x_component, y_component]))
             line.set_xdata(x1)
             line.set_ydata(y1)
         
@@ -260,16 +287,29 @@ def visualiser_main():
         hide_widgets(current_widgets)
         current_widgets.clear()
 
+        ax_reset_button.set_position(INITIAL_RESET_SLIDER_POS)
+
         match label:
             case "Rotation":
+                rotation_center_point.set_visible(True)
+                reflection_line.set_visible(False)
                 current_widgets.extend([rotation_slider, rotation_center_x_slider, rotation_center_y_slider])
             case "Shearing":
+                rotation_center_point.set_visible(False)
+                reflection_line.set_visible(False)
                 current_widgets.extend([shearing_kx_slider, shearing_ky_slider])
             case "Scaling": 
+                rotation_center_point.set_visible(False)
+                reflection_line.set_visible(False)
                 current_widgets.extend([scaling_kx_slider, scaling_ky_slider])
             case "Reflection":
+                ax_reset_button.set_position([0.85, 0.05, 0.1, 0.1])
+                rotation_center_point.set_visible(False)
+                reflection_line.set_visible(True)
                 current_widgets.extend([reflection_x_slider, reflection_y_slider, reflection_button])
             case _:
+                rotation_center_point.set_visible(False)
+                reflection_line.set_visible(False)
                 current_widgets.extend([translation_x_slider, translation_y_slider])
 
         show_widgets(current_widgets)
@@ -329,7 +369,7 @@ def visualiser_main():
             
 
     # Function to update the position of the coordinates text box with respect to the zoom of the plot
-    def update_point_position(event) -> None:
+    def update_textbox_position(event) -> None:
         xlim, ylim = ax.get_xlim(), ax.get_ylim()
         x_diff = xlim[1] - xlim[0]
         y_diff = ylim[1] - ylim[0]
@@ -372,6 +412,8 @@ def visualiser_main():
     scaling_kx_slider.on_changed(update_scaling)
     scaling_ky_slider.on_changed(update_scaling)
     # Reflection handlers
+    reflection_x_slider.on_changed(update_reflection_line)
+    reflection_y_slider.on_changed(update_reflection_line)
     reflection_button.on_clicked(update_reflection)
     # Translation handlers
     translation_x_slider.on_changed(update_translation)
@@ -385,8 +427,8 @@ def visualiser_main():
     # Mouse click even handler
     fig.canvas.mpl_connect('button_press_event', on_click_place_point)
     fig.canvas.mpl_connect('button_press_event', on_click_remove_point)
-    ax.callbacks.connect('xlim_changed', update_point_position)
-    ax.callbacks.connect('ylim_changed', update_point_position)
+    ax.callbacks.connect('xlim_changed', update_textbox_position)
+    ax.callbacks.connect('ylim_changed', update_textbox_position)
 
     plt.show()
 
