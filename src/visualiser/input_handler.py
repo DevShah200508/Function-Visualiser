@@ -36,4 +36,4 @@ def get_axis_lim(window) -> tuple:
         window.error_label.configure(text='   Make sure you input a whole numbers!', image=window.error_icon)
     except ValueError:
         print("ValueError in get_axis_lim")
-        window.error_label.configure(text='   Make sure you choose a valid range (only 4 values inputted), maximum value cannot be smaller than minimum value!', image=window.error_icon)
+        window.error_label.configure(text='   Make sure you choose a valid range, maximum value cannot be smaller than minimum value!', image=window.error_icon)

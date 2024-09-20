@@ -7,7 +7,7 @@ from time import sleep
 from src.transformations import transformation as tr
 from src.transformations.vector import Vector
 from src.custom import custom_get_random_color
-from .input_handler import get_function, get_axis_lim, get_function_numbers
+from .input_handler import get_functions, get_axis_lim
 from .widget_visibility_control import show_widgets, hide_widgets, transformation_line_visibility
 
 warnings.filterwarnings("ignore", category=RuntimeWarning) # Supress division by 0 warnings when computing gradient for vertical line, and also warnings due to domain being out of function bound

@@ -74,7 +74,7 @@ class InputGUI(ctk.CTk):
         self.error_icon = ctk.CTkImage(Image.open("resources/icons/381599_error_icon.png")) 
         self.error_icon_label = ctk.CTkLabel(self.error_frame, text="")
         self.error_icon_label.grid(row=0, column=0, padx=(5, 0), pady=3)
-        self.error_label = ctk.CTkLabel(self.error_frame, text="", compound="left", text_color="#fe2828", font=(None, 13, "bold"), width=240, height=25, wraplength=240, anchor="w")
+        self.error_label = ctk.CTkLabel(self.error_frame, text="", compound="left", text_color="#fe2828", font=(None, 13, "bold"), width=240, height=25, wraplength=240)
         self.error_label.grid(row=0, column=0, padx=20, pady=(5, 0))
 
         self.level = self.winfo_toplevel()
