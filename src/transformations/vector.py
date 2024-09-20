@@ -90,7 +90,7 @@ class Vector:
             print(f"| {stringVal[i]}" + (" " * (maxLen - len(stringVal[i]))) + " |")
         print("")
 
-         # Method to test equality between 2 vectors 
+    # Method to test equality between 2 vectors 
     def __eq__(self, v):
         try:
             self.__constraintCheck(v)
@@ -99,13 +99,18 @@ class Vector:
             return False
         except ValueError or TypeError:
             return False
-        
+
+    # Function which returns a hash value for the vector object 
+    def __hash__(self):
+        return hash(tuple(self.values))
+
     # Detailed representation of the vector object for debugging
     def __repr__(self):
         return f"Vector(dimensions={self.d!r}, components={self.values!r})"
+     
 
 # Main function of the script
-def main():
+def vector_main():
     vec1 = Vector([1,2,3])
     vec1.toString(logging=True)
     vec2 = Vector([4,5,6])
@@ -114,8 +119,10 @@ def main():
     vec3 = vec3.normalize(logging=True)
     vec1.angle(vec2, logging=True)
     vec1.toMatrix().toVector().toString(logging=True)
-    print(repr(vec1))
+    print("hi")
+    Vector([-1,1]).angle(Vector([1,0]), logging=True)
+    #print(repr(vec1))
 
 # Running the main function
 if __name__ == "__main__":
-    main()
+    vector_main()

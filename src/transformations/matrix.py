@@ -183,20 +183,26 @@ class Matrix:
     def __eq__(self, m):
         try:
             self.__typeCheckMatrix(m)
-            print("hello")
             if (self.d == m.d) and (np.allclose(self.values, m.values)):
-                print("hello2")
                 return True
             return False
         except TypeError:
             return False
+        
+    #Function which returns a hash value for the matrix object
+    def __hash__(self):
+        return hash(tuple(tuple(row) for row in self.values))
      
-    
     # Detailed representation of the matrix object for debugging
     def __repr__(self):
         return f"Matrix(dimensions={self.d!r}, values={self.values!r})"
 
-def main():
+def identity_matrix(size: int) -> Matrix:
+    content = [[1 if i == j else 0 for j in range(size)] for i in range(size)]  
+    return Matrix(content)
+    print(content)
+
+def matrix_main():
     matA = Matrix([[2,1,3,0],[1,2,1,3],[3,1,2,2],[5,2,7,3]])
     matA.transpose(logging=True)
     matA.determinant(logging=True)
@@ -209,6 +215,7 @@ def main():
     matD.power(3, logging=True)
     print(repr(matA))
     print(matA == matB.inverse())
+    identity_matrix(6).toString()
 
 if __name__ == "__main__":
-    main()
+    matrix_main()

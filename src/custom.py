@@ -15,7 +15,7 @@ def custom_is_constant(user_input: str) -> bool:
     except ValueError:
         return False  
     
-# Custom method which tests a 100 different random values between -1000 and 1000 to see if the function inputted is actually valid 
+# Custom method which tests a 100 different random values between -1000 and 1000 to see if the function inputted is actually valid, error is raised if function is not validz 
 def custom_test_valid_function(f) -> None:
     for _ in range(100):
         float(f(randint(-1000, 1000)))

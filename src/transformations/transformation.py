@@ -1,3 +1,4 @@
+from functools import lru_cache
 import numpy as np
 import matplotlib.pyplot as plt
 from colorama import Fore, Style
@@ -7,10 +8,12 @@ from .matrix import Matrix
 # Store PI as a constant
 PI = np.pi
 
+@lru_cache(maxsize=None)
 # Function to translate a vector (v) by another vector (u)
 def translation(v: Vector, u: Vector) -> Vector:
     return v.add(u)
 
+@lru_cache(maxsize=None)
 # Function to project a vector (v) onto another vector (u)
 def projection(v: Vector, u: Vector) -> Vector:
     u_Matrix = u.toMatrix()
@@ -19,6 +22,7 @@ def projection(v: Vector, u: Vector) -> Vector:
     projected_Vector = projection_Matrix.multiply(v_Matrix).toVector()
     return projected_Vector
 
+@lru_cache(maxsize=None)
 # Function to shear a vector by some scale factors kx and ky
 def shearing(v: Vector, kx: float, ky:float) -> Vector:
     shearing_Matrix = Matrix([[1, kx]
@@ -27,6 +31,7 @@ def shearing(v: Vector, kx: float, ky:float) -> Vector:
     sheared_Vector = shearing_Matrix.multiply(v_Matrix).toVector()
     return sheared_Vector
 
+@lru_cache(maxsize=None)
 # Function to scale a vector by some scale factors kx and ky
 def scaling(v: Vector, kx: float, ky: float) -> Vector:
     scaling_Matrix = Matrix([[kx, 0]
@@ -35,17 +40,17 @@ def scaling(v: Vector, kx: float, ky: float) -> Vector:
     scaled_Vector = scaling_Matrix.multiply(v_Matrix).toVector()
     return scaled_Vector
 
+@lru_cache(maxsize=None)
 # Function to reflect a vector in a given direction (u)
 def reflection(v: Vector, u: Vector) -> Vector:
-    v_u_angle = u.angle(Vector([1,0]))*PI/180
-    reflection_Matrix = Matrix([[np.cos(2*v_u_angle), np.sin(2*v_u_angle)]
-                               ,[np.sin(2*v_u_angle), -np.cos(2*v_u_angle)]])
-    v_Matrix = v.toMatrix()
-    reflected_Vector = reflection_Matrix.multiply(v_Matrix).toVector()
+    projected_vector = u.scale(v.dotProduct(u)/u.dotProduct(u))
+    reflected_Vector = projected_vector.scale(2).add(v.scale(-1))
     return reflected_Vector
 
+@lru_cache(maxsize=None)
 # Function to rotate a vector about a given point (u) by an angle (θ)
-def rotation(v: Vector, u: Vector, θ: float) -> Vector:
+def rotation(v: Vector, u: Vector, angle: float) -> Vector:
+    θ = angle * PI/180
     rotation_Matrix = Matrix([[np.cos(θ), np.sin(θ)]
                              ,[-np.sin(θ), np.cos(θ)]])
     transformed_v = v.add(u.scale(-1))
