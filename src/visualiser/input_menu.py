@@ -113,8 +113,6 @@ class InputGUI(ctk.CTk):
             self.function_info_window.geometry("400x300")
             self.function_info_window.protocol("WM_DELETE_WINDOW", self.close_info_window)
 
-
-
     # Function to properly close the info window
     def close_info_window(self) -> None:
         self.function_info_window.destroy()

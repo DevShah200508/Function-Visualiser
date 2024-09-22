@@ -21,8 +21,6 @@ SLIDER_POS_3 = [0.1, 0.20, 0.65, 0.03]
 TRANSFORMATION_SLIDER_POS = [0.85, 0.17, 0.1, 0.1]
 RESET_SLIDER_POS = [0.85, 0.05, 0.1, 0.1]
 
-"""TODO: change the structure of the visualiser_main() and make a class FunctionVisualiserApp instead to make the code more readable and clear"""
-
 class FunctionVisualiserApp:
     
     def __init__(self, window) -> None:
@@ -435,7 +433,3 @@ class FunctionVisualiserApp:
         except:
             return
 
-# Main function
-def visualiser_main():
-    app = FunctionVisualiserApp()
-    app.run()

@@ -5,7 +5,6 @@ from src.custom import custom_is_constant, custom_test_valid_function, custom_ge
 def get_functions(window, labels=None) -> tuple:
     if labels is None:
         labels = []
-
     funcs = []
     function_number = len(window.function_entries)
     try:
@@ -14,7 +13,6 @@ def get_functions(window, labels=None) -> tuple:
     except ValueError:
         window.error_label.configure(text='Please select between 1-8 functions before trying to plot!', image=window.error_icon)
         return 
-    
     for i in range(function_number):
         user_input = window.function_entries[i].get()
         try:
@@ -41,7 +39,6 @@ def get_axis_lim(window) -> tuple:
     except ValueError:
         window.error_label.configure(text='Please ensure to input a value for each bound', image=window.error_icon)
         return
-    
     try:
         min_x, max_x, min_y, max_y = [float(bound) for bound in user_input]
         if (max_x <= min_x) or (max_y <= min_y):
