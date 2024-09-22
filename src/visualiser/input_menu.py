@@ -1,8 +1,12 @@
 import customtkinter as ctk
 import numpy as np
 import matplotlib.pyplot as plt
+import warnings
+from colorama import Fore, Style
 from PIL import Image
 from .functionVisualiser import FunctionVisualiserApp
+
+warnings.filterwarnings("ignore", category=UserWarning) # Ignore any warnings about CTkImages when using "" to hide an image icon
 
 # Constants
 # Screen dimensions are stores as strings to allow tkinter to construct screen properly 
@@ -11,7 +15,7 @@ SCREEN_HEIGHT = "750"
 
 # Set the initial theme of the GUI
 ctk.set_appearance_mode("dark") # Setting appearance to dark
-ctk.set_default_color_theme("green") # Setting colour theme to blue
+ctk.set_default_color_theme("green") # Setting colour theme to green
 
 class InputGUI(ctk.CTk):
     def __init__(self):
@@ -34,8 +38,9 @@ class InputGUI(ctk.CTk):
 
         self.function_info_icon = ctk.CTkImage(Image.open("resources/icons/icons8-info-64.png"))
 
-        self.function_info_button = ctk.CTkButton(self, text=" Info", text_color="#87D13C", image=self.function_info_icon, font=(None, 15, "bold"), fg_color="#242424", hover_color="#242424", border_width=2, border_color="#565b5e", width=100, anchor="w")
+        self.function_info_button = ctk.CTkButton(self, text=" Info", text_color="#87D13C", image=self.function_info_icon, font=(None, 15, "bold"), fg_color="#242424", hover_color="#242424", border_width=2, border_color="#565b5e", width=100, anchor="w", command=self.open_info_window)
         self.function_info_button.grid(row=3, column=0)
+        self.function_info_window = None
 
         self.function_info_button.bind("<Enter>", self.button_hover_function_info_button)
         self.function_info_button.bind("<Leave>", self.off_button_hover_function_info_button)
@@ -74,7 +79,7 @@ class InputGUI(ctk.CTk):
         self.error_icon = ctk.CTkImage(Image.open("resources/icons/381599_error_icon.png")) 
         self.error_icon_label = ctk.CTkLabel(self.error_frame, text="")
         self.error_icon_label.grid(row=0, column=0, padx=(5, 0), pady=3)
-        self.error_label = ctk.CTkLabel(self.error_frame, text="", compound="left", text_color="#fe2828", font=(None, 13, "bold"), width=240, height=25, wraplength=240)
+        self.error_label = ctk.CTkLabel(self.error_frame, text="", compound="left", text_color="#fe2828", font=(None, 13, "bold"), width=240, height=40, wraplength=240, padx=10, pady=15)
         self.error_label.grid(row=0, column=0, padx=20, pady=(5, 0))
 
         self.level = self.winfo_toplevel()
@@ -91,7 +96,7 @@ class InputGUI(ctk.CTk):
                 raise ValueError
             
         except ValueError:
-                self.error_label.configure(text="   Make sure you input a whole number between 1 to 8!", image=self.error_icon)
+                self.error_label.configure(text="Make sure you input a whole number between 1 to 8!", image=self.error_icon)
                 return
         
         self.error_label.configure(text="", image="") # If not errors are raised then remove the content in the error_label
@@ -99,9 +104,25 @@ class InputGUI(ctk.CTk):
             entry = ctk.CTkEntry(self.function_frame, placeholder_text=f"f{i+1}:", width=280, text_color="#87D13C")
             entry.grid(row=i, column=0, padx=5, pady=10, sticky="W")
             self.function_entries.append(entry)
+    
+    # Function to open the info window when the info button is pressed
+    def open_info_window(self) -> None:
+        if self.function_info_window is None:
+            self.function_info_window = ctk.CTkToplevel()
+            self.function_info_window.title("Info")
+            self.function_info_window.geometry("400x300")
+            self.function_info_window.protocol("WM_DELETE_WINDOW", self.close_info_window)
+
+
+
+    # Function to properly close the info window
+    def close_info_window(self) -> None:
+        self.function_info_window.destroy()
+        self.function_info_window = None
 
     # Method to process all inputted paramaters and plot an interactive plot of all the transformations 
     def plot_functions(self) -> None:
+            
         functionVisualiser = FunctionVisualiserApp(self)
         functionVisualiser.run()
 
@@ -120,12 +141,21 @@ class InputGUI(ctk.CTk):
 
     def show_function_info(self) -> None:
         pass
+    
+    # Method to deal with closing the window properly 
+    def on_quit(self):
+        plt.close("all")
+        for after_id in self.tk.eval('after info').split():
+            self.after_cancel(after_id) # Cancel any after callbacks by their ids
+        self.destroy()
          
     def destroy_widgets(self, widgets: list) -> None:
             for widget in widgets:
                 widget.destroy()
         
     def run(self):
+        print(Fore.LIGHTGREEN_EX + "Welcome to the visual function transformer, you can exit at any point by pressing the cross button on the top right of the window" + Style.RESET_ALL)
+        self.protocol("WM_DELETE_WINDOW", self.on_quit)
         self.mainloop()
 
 def gui_main():

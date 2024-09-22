@@ -1,7 +1,6 @@
 import warnings
 import matplotlib.pyplot as plt
 import numpy as np
-from colorama import Fore, Style
 from matplotlib.widgets import Slider, CheckButtons, RadioButtons, Button
 from time import sleep
 from src.transformations import transformation as tr
@@ -29,6 +28,10 @@ class FunctionVisualiserApp:
     def __init__(self, window) -> None:
         # Storing the custom tkinter window 
         self.window = window
+
+        # The Figure
+        self.fig = None
+        self.ax = None
 
         # Storing all things to do with the line object and transformatiosn themselves
         self.lines = [] # Stores all functions/lines and their corresponding transformation line (where the line will be after a transformation)
@@ -66,11 +69,7 @@ class FunctionVisualiserApp:
         self.transform_button = None
         self.reset_button = None
 
-        # The figure
-        self.fig, self.ax = plt.subplots() # Main plot 
-
     def __setup_functions(self) -> None:
-        print(Fore.LIGHTGREEN_EX + "Welcome to the visual function transformer, you can exit at any point by pressing the cross button on the top right of the window" + Style.RESET_ALL)
         self.func_arr, self.func_labels = get_functions(self.window) # Retrieve all user inputted functions 
         self.min_x, self.max_x, self.min_y, self.max_y = get_axis_lim(self.window) # Get the axis limits for the domain and range of the graph you want displayed 
         value = int(np.ceil(max(100 + abs(self.max_x), 100 + abs(self.min_x)))) # Ensures function is plotted out the visible view of the graph 
@@ -79,6 +78,8 @@ class FunctionVisualiserApp:
 
     # Method for the setup of the initial plot
     def __setup_plots(self) -> None:
+         # The figure
+        self.fig, self.ax = plt.subplots() 
         # Plotting the initial functions
         for i, f in enumerate(self.func_arr):
             fx = f(self.x)
@@ -425,11 +426,14 @@ class FunctionVisualiserApp:
 
     # Method to run the app
     def run(self):
-        self.__setup_functions() # set up the functions and the axes bounds
-        self.__setup_plots() # Making the plots
-        self.__setup_widgets() # Making the widgets
-        self.__setup_event_handlers() # Linking to event handlers
-        plt.show()
+        try: # Try except blocks to deal with any issues that may arise with user input 
+            self.__setup_functions() # set up the functions and the axes bounds
+            self.__setup_plots() # Making the plots
+            self.__setup_widgets() # Making the widgets
+            self.__setup_event_handlers() # Linking to event handlers
+            plt.show()
+        except:
+            return
 
 # Main function
 def visualiser_main():
