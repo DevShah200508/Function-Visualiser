@@ -1,3 +1,48 @@
+# Python bytecode files
 __pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment folders
+venv/
+env/
+.venv/
+.env/
+
+# IDE configuration files (example for common editors)
+.idea/
+.vscode/
+
+# Python distribution files
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+
+# Test and coverage reports
+*.coverage
+*.tox/
+*.nox/
+*.coverage.*
+nosetests.xml
+coverage.xml
+*.hypothesis/
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# Log files
+*.log
+
+# Miscellaneous system files
+.DS_Store  # macOS
+Thumbs.db  # Windows
+
+# Python profiler data
+*.prof
+
+# Extras
 tempCodeRunnerFile.py
 pattern*.py

@@ -1,8 +1,9 @@
 import sympy as sp
 from src.custom import custom_is_constant, custom_test_valid_function, custom_get_random_color
+from typing import Optional
 
 # Method to retrieve function from user input. Constant k for k functions. Colors are chosen randomly. Labels are returned for visual information
-def get_functions(window, labels=None) -> tuple:
+def get_functions(window, labels=None) -> Optional[tuple]:
     if labels is None:
         labels = []
     funcs = []
@@ -31,7 +32,7 @@ def get_functions(window, labels=None) -> tuple:
     return funcs, labels
 
 # Method to take the visual bounds of the graph from the user
-def get_axis_lim(window) -> tuple:
+def get_axis_lim(window) -> Optional[tuple]:
     user_input = [window.min_x_bound.get(), window.max_x_bound.get(), window.min_y_bound.get(), window.max_y_bound.get()]
     try:
         if any(input == "" for input in user_input):

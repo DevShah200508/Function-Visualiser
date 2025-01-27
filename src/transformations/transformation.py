@@ -2,18 +2,21 @@ from functools import lru_cache
 import numpy as np
 import matplotlib.pyplot as plt
 from colorama import Fore, Style
+from future.backports.urllib.parse import MAX_CACHE_SIZE
+
 from .vector import Vector
 from .matrix import Matrix
 
 # Store PI as a constant
 PI = np.pi
+CACHE_SIZE = 1024
 
-@lru_cache(maxsize=None)
+@lru_cache(maxsize=CACHE_SIZE)
 # Function to translate a vector (v) by another vector (u)
 def translation(v: Vector, u: Vector) -> Vector:
     return v.add(u)
 
-@lru_cache(maxsize=None)
+@lru_cache(maxsize=CACHE_SIZE)
 # Function to project a vector (v) onto another vector (u)
 def projection(v: Vector, u: Vector) -> Vector:
     u_Matrix = u.toMatrix()
@@ -22,7 +25,7 @@ def projection(v: Vector, u: Vector) -> Vector:
     projected_Vector = projection_Matrix.multiply(v_Matrix).toVector()
     return projected_Vector
 
-@lru_cache(maxsize=None)
+@lru_cache(maxsize=CACHE_SIZE)
 # Function to shear a vector by some scale factors kx and ky
 def shearing(v: Vector, kx: float, ky:float) -> Vector:
     shearing_Matrix = Matrix([[1, kx]
@@ -31,7 +34,7 @@ def shearing(v: Vector, kx: float, ky:float) -> Vector:
     sheared_Vector = shearing_Matrix.multiply(v_Matrix).toVector()
     return sheared_Vector
 
-@lru_cache(maxsize=None)
+@lru_cache(maxsize=CACHE_SIZE)
 # Function to scale a vector by some scale factors kx and ky
 def scaling(v: Vector, kx: float, ky: float) -> Vector:
     scaling_Matrix = Matrix([[kx, 0]
@@ -40,14 +43,14 @@ def scaling(v: Vector, kx: float, ky: float) -> Vector:
     scaled_Vector = scaling_Matrix.multiply(v_Matrix).toVector()
     return scaled_Vector
 
-@lru_cache(maxsize=None)
+@lru_cache(maxsize=CACHE_SIZE)
 # Function to reflect a vector in a given direction (u)
 def reflection(v: Vector, u: Vector) -> Vector:
     projected_vector = u.scale(v.dotProduct(u)/u.dotProduct(u))
     reflected_Vector = projected_vector.scale(2).add(v.scale(-1))
     return reflected_Vector
 
-@lru_cache(maxsize=None)
+@lru_cache(maxsize=CACHE_SIZE)
 # Function to rotate a vector about a given point (u) by an angle (θ)
 def rotation(v: Vector, u: Vector, angle: float) -> Vector:
     θ = angle * PI/180
@@ -68,8 +71,8 @@ def transform_values(x, y, t, *args):
     return x_transformed, y_transformed
 
 # Method to plot vectors for visual representation
-def plot_vectors(vectors: list[Vector], colors: list[str], labels=None) -> None:
-    if (len(colors) != len(vectors)):
+def plot_vectors(vectors: list[Vector], colors: list[str], labels=CACHE_SIZE) -> None:
+    if len(colors) != len(vectors):
         raise ValueError(Fore.RED + "Make sure to input a color for all the vectors!" + Style.RESET_ALL)
     try:
         for i, (vector, color) in enumerate(zip(vectors, colors)):

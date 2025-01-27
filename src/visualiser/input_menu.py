@@ -23,6 +23,7 @@ class InputGUI(ctk.CTk):
 
         self.title("Function Visualiser")
         self.geometry("x".join([SCREEN_WIDTH, SCREEN_HEIGHT]))
+        self.resizable(False, False)
 
         self.function_entries = []
         
@@ -84,7 +85,7 @@ class InputGUI(ctk.CTk):
 
         self.level = self.winfo_toplevel()
 
-        # Method to deal the with function_entry input when the submit button is pressed                              
+    # Method to deal the with function_entry input when the submit button is pressed
     def update_function_number(self, event) -> None:
         self.destroy_widgets(self.function_entries) # Remove all the old function entries as new ones are going to be places
         self.function_entries.clear() # clear the array of function entries for new ones to be appended into the array
@@ -111,6 +112,15 @@ class InputGUI(ctk.CTk):
             self.function_info_window = ctk.CTkToplevel()
             self.function_info_window.title("Info")
             self.function_info_window.geometry("400x300")
+            self.function_info_window.resizable(False, False)
+            function_info_frame = ctk.CTkFrame(self.function_info_window, width=390, height=290)
+            function_info_frame.grid(row=0, column=0, padx=5, pady=5)
+            function_info_title_label = ctk.CTkLabel(function_info_frame, text="How to use:", text_color="#87D13C", font=(None, 25, "bold"), width=380, anchor="center", justify="center")
+            function_info_title_label.pack(padx=5, pady=5, fill="x")
+            function_info_label = ctk.CTkLabel(function_info_frame, text="• For general operations: (*) Times, (/) division, (-) subtraction, (+) addition , (**) exponentiation\n\n• Ensure to use exp(x) instead of writing e**x\n\n• Enter in between 1 to 8 valid functions\n\n• Enter in valid graph bounds at the bottom", text_color="#A0A0A0", font=(None, 15, "bold"), width=380, height=250, wraplength=370, anchor="nw", justify="left")
+            function_info_label.pack(padx=5, pady=10, fill="x")
+            self.function_info_window.grid_rowconfigure(0, weight=1, minsize=1)
+            self.function_info_window.grid_columnconfigure(0, weight=1, minsize=1)
             self.function_info_window.protocol("WM_DELETE_WINDOW", self.close_info_window)
 
     # Function to properly close the info window
@@ -118,7 +128,7 @@ class InputGUI(ctk.CTk):
         self.function_info_window.destroy()
         self.function_info_window = None
 
-    # Method to process all inputted paramaters and plot an interactive plot of all the transformations 
+    # Method to process all inputted parameters and plot an interactive plot of all the transformations
     def plot_functions(self) -> None:
             
         functionVisualiser = FunctionVisualiserApp(self)
@@ -148,11 +158,11 @@ class InputGUI(ctk.CTk):
         self.destroy()
          
     def destroy_widgets(self, widgets: list) -> None:
-            for widget in widgets:
-                widget.destroy()
+        for widget in widgets:
+            widget.destroy()
         
     def run(self):
-        print(Fore.LIGHTGREEN_EX + "Welcome to the visual function transformer, you can exit at any point by pressing the cross button on the top right of the window" + Style.RESET_ALL)
+        print(Fore.LIGHTGREEN_EX + "Welcome to the visual function transformer, you can exit at any point by pressing the cross button on the top right of the window!" + Style.RESET_ALL)
         self.protocol("WM_DELETE_WINDOW", self.on_quit)
         self.mainloop()
 
@@ -161,4 +171,4 @@ def gui_main():
     app.run()
 
 if __name__ == "__main__":
-    main()
+    gui_main()

@@ -31,7 +31,7 @@ class FunctionVisualiserApp:
         self.fig = None
         self.ax = None
 
-        # Storing all things to do with the line object and transformatiosn themselves
+        # Storing all things to do with the line object and transformation themselves
         self.lines = [] # Stores all functions/lines and their corresponding transformation line (where the line will be after a transformation)
         self.selected_lines = [] # Stores all the functions selected for transformation and their corresponding transformation function (where the function will be after a tranformation)
         self.current_widgets = [] # Stores all the current widgets needing to be displayed on the screen
