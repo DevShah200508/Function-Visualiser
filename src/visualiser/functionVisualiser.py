@@ -2,7 +2,6 @@ import warnings
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.widgets import Slider, CheckButtons, RadioButtons, Button
-from time import sleep
 from src.transformations import transformation as tr
 from src.transformations.vector import Vector
 from src.custom import custom_get_random_color
@@ -12,14 +11,15 @@ from .widget_visibility_control import show_widgets, hide_widgets, transformatio
 warnings.filterwarnings("ignore", category=RuntimeWarning) # Supress division by 0 warnings when computing gradient for vertical line, and also warnings due to domain being out of function bound
 
 # Constants that are used later within the script
+PI = np.pi
 RADIOBUTTON_LABELS = ["Rotation", "Shearing", "Scaling", "Reflection", "Translation"]
 TEXTBOX_TO_POINT_SCALE = 1/15
 POINT_INCH_SCALE = 1/72
-SLIDER_POS_1 = [0.1, 0.10, 0.65, 0.03]
-SLIDER_POS_2 = [0.1, 0.15, 0.65, 0.03]
-SLIDER_POS_3 = [0.1, 0.20, 0.65, 0.03]
-TRANSFORMATION_SLIDER_POS = [0.85, 0.17, 0.1, 0.1]
-RESET_SLIDER_POS = [0.85, 0.05, 0.1, 0.1]
+SLIDER_POS_1 = (0.1, 0.10, 0.65, 0.03)
+SLIDER_POS_2 = (0.1, 0.15, 0.65, 0.03)
+SLIDER_POS_3 = (0.1, 0.20, 0.65, 0.03)
+TRANSFORMATION_SLIDER_POS = (0.85, 0.17, 0.1, 0.1)
+RESET_SLIDER_POS = (0.85, 0.05, 0.1, 0.1)
 
 class FunctionVisualiserApp:
     
@@ -58,8 +58,7 @@ class FunctionVisualiserApp:
         self.shearing_ky_slider = None
         self.scaling_kx_slider = None
         self.scaling_ky_slider = None
-        self.reflection_x_slider = None
-        self.reflection_y_slider = None
+        self.reflection_slider = None
         self.translation_x_slider = None
         self.translation_y_slider = None
         self.transformation_selector = None
@@ -138,12 +137,8 @@ class FunctionVisualiserApp:
         ax_scaling_ky_slider = plt.axes(SLIDER_POS_2, facecolor='lightgoldenrodyellow')
         self.scaling_ky_slider = Slider(ax_scaling_ky_slider, 'ky scaling', -10, 10, valinit=1.0)
 
-        # Set up the sliders and button for reflection
-        ax_reflection_x_slider = plt.axes(SLIDER_POS_1, facecolor='lightgoldenrodyellow')
-        self.reflection_x_slider = Slider(ax_reflection_x_slider, 'x reflection', -1, 1, valinit=1.0)
-
-        ax_reflection_y_slider = plt.axes(SLIDER_POS_2, facecolor='lightgoldenrodyellow')
-        self.reflection_y_slider = Slider(ax_reflection_y_slider, 'y reflection', -1, 1, valinit=0.0)
+        ax_reflection_slider = plt.axes(SLIDER_POS_1, facecolor='lightgoldenrodyellow')
+        self.reflection_slider = Slider(ax_reflection_slider, 'reflection', 0, 180, valinit=0)
 
         # Set up the sliders for translation
         ax_translation_x_slider = plt.axes(SLIDER_POS_1, facecolor='lightgoldenrodyellow')
@@ -156,13 +151,13 @@ class FunctionVisualiserApp:
         self.current_widgets.extend([self.rotation_slider, self.rotation_center_x_slider, self.rotation_center_y_slider])
 
         # Hide all the sliders which are not involved with rotation 
-        hide_widgets([self.shearing_kx_slider, self.shearing_ky_slider, self.scaling_kx_slider, self.scaling_ky_slider, self.reflection_x_slider, self.reflection_y_slider, self.translation_x_slider, self.translation_y_slider])
+        hide_widgets([self.shearing_kx_slider, self.shearing_ky_slider, self.scaling_kx_slider, self.scaling_ky_slider, self.reflection_slider, self.translation_x_slider, self.translation_y_slider])
 
         # CheckButtons and RadioButtons for selecting function(s) and transformation(s)
-        ax_transformation_selector = plt.axes([0.01, 0.35, 0.2, 0.2], facecolor='lightgreen')
+        ax_transformation_selector = plt.axes((0.01, 0.35, 0.2, 0.2), facecolor='lightgreen')
         self.transformation_selector = RadioButtons(ax_transformation_selector, RADIOBUTTON_LABELS)
 
-        ax_function_selector = plt.axes([0.01, 0.6, 0.2, 0.2], facecolor='lightgoldenrodyellow')
+        ax_function_selector = plt.axes((0.01, 0.6, 0.2, 0.2), facecolor='lightgoldenrodyellow')
         visibility = [True] * len(self.func_arr)
         self.function_selector = CheckButtons(ax_function_selector, self.func_labels, visibility)
         
@@ -187,9 +182,8 @@ class FunctionVisualiserApp:
         # Scaling handlers
         self.scaling_kx_slider.on_changed(self.__update_scaling)
         self.scaling_ky_slider.on_changed(self.__update_scaling)
-        # Reflection handlers
-        self.reflection_x_slider.on_changed(self.__update_reflection_line)
-        self.reflection_y_slider.on_changed(self.__update_reflection_line)
+        # Reflection handler
+        self.reflection_slider.on_changed(self.__update_reflection_line)
         # Translation handlers
         self.translation_x_slider.on_changed(self.__update_translation)
         self.translation_y_slider.on_changed(self.__update_translation)
@@ -212,14 +206,7 @@ class FunctionVisualiserApp:
         angle = self.rotation_slider.val
         center_x, center_y = self.rotation_center_x_slider.val, self.rotation_center_y_slider.val
         self.__update_rotation_center_point(center_x, center_y) # Update the position of the center point the axes
-        for line, transformation_line in self.selected_lines:
-            transformation_line_visibility(line, transformation_line) 
-            index = self.lines.index((line, transformation_line))
-            x0, y0 = self.current_data[index]
-            x1, y1 = tr.transform_values(x0, y0, tr.rotation, Vector([center_x, center_y]), angle)
-            transformation_line.set_xdata(x1)
-            transformation_line.set_ydata(y1)
-
+        self.__transform_plot(tr.rotation, Vector([center_x, center_y]), angle)
         self.fig.canvas.draw_idle()
 
 
@@ -231,59 +218,38 @@ class FunctionVisualiserApp:
     # Method to deal with change in the shearing sliders
     def __update_shearing(self, _) -> None:
         kx, ky = self.shearing_kx_slider.val, self.shearing_ky_slider.val
-        for line, transformation_line in self.selected_lines:
-            transformation_line_visibility(line, transformation_line) 
-            index = self.lines.index((line, transformation_line))
-            x0, y0 = self.current_data[index]
-            x1, y1 = tr.transform_values(x0, y0, tr.shearing, kx, ky)
-            transformation_line.set_xdata(x1)
-            transformation_line.set_ydata(y1)
-        
+        self.__transform_plot(tr.shearing, kx, ky)
         self.fig.canvas.draw_idle()
 
     # Method to deal with change in the scaling sliders
     def __update_scaling(self, _) -> None:
         kx, ky = self.scaling_kx_slider.val, self.scaling_ky_slider.val
-        for line, transformation_line in self.selected_lines:
-            transformation_line_visibility(line, transformation_line)
-            index = self.lines.index((line, transformation_line))
-            x0, y0 = self.current_data[index]
-            x1, y1 = tr.transform_values(x0, y0, tr.scaling, kx, ky)
-            transformation_line.set_xdata(x1)
-            transformation_line.set_ydata(y1)
-        
+        self.__transform_plot(tr.scaling, kx, ky)
         self.fig.canvas.draw_idle()
 
     # Method to update the line of reflection when the reflection sliders values are altered
     def __update_reflection_line(self, _) -> None:     
-        x_component, y_component = self.reflection_x_slider.val, self.reflection_y_slider.val
-        gradient = y_component/x_component
-        f = lambda x: gradient*x
-        y = f(self.x)
+        x_component, y_component = np.cos(self.reflection_slider.val*PI/180), np.sin(self.reflection_slider.val*PI/180)
+        y = (lambda x: (y_component/x_component)*x)(self.x)
         self.reflection_line.set_ydata(y)
-        x_component, y_component = self.reflection_x_slider.val, self.reflection_y_slider.val
-        for line, transformation_line in self.selected_lines:
-            transformation_line_visibility(line, transformation_line)
-            index = self.lines.index((line, transformation_line))
-            x0, y0 = self.current_data[index]
-            x1, y1 = tr.transform_values(x0, y0, tr.reflection, Vector([x_component,y_component]))
-            transformation_line.set_xdata(x1)
-            transformation_line.set_ydata(y1)
-        
+        self.__transform_plot(tr.reflection, Vector([x_component, y_component]))
         self.fig.canvas.draw_idle()
 
     # Method to deal with change in the translation sliders
     def __update_translation(self, _) -> None:
         x_component, y_component = self.translation_x_slider.val, self.translation_y_slider.val
+        self.__transform_plot(tr.translation, Vector([x_component, y_component]))
+        self.fig.canvas.draw_idle()
+
+    # Method to transform line data based on a transformation and parameters
+    def __transform_plot(self, transformation, *args) -> None:
         for line, transformation_line in self.selected_lines:
             transformation_line_visibility(line, transformation_line)
             index = self.lines.index((line, transformation_line))
             x0, y0 = self.current_data[index]
-            x1, y1 = tr.transform_values(x0, y0, tr.translation, Vector([x_component, y_component]))
+            x1, y1 = tr.transform_values(x0, y0, transformation, *args)
             transformation_line.set_xdata(x1)
             transformation_line.set_ydata(y1)
-        
-        self.fig.canvas.draw_idle()
 
     # Perform the transformation, making the transformed function the new starting point
     def __perform_transformation(self, _) -> None:
@@ -323,7 +289,7 @@ class FunctionVisualiserApp:
             case "Reflection":
                 self.rotation_center_point.set_visible(False)
                 self.reflection_line.set_visible(True)
-                self.current_widgets.extend([self.reflection_x_slider, self.reflection_y_slider])
+                self.current_widgets.extend([self.reflection_slider])
             case _:
                 self.rotation_center_point.set_visible(False)
                 self.reflection_line.set_visible(False)
@@ -431,5 +397,6 @@ class FunctionVisualiserApp:
             self.__setup_event_handlers() # Linking to event handlers
             plt.show()
         except:
+            print("Error!")
             return
 

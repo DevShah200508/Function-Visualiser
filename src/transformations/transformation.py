@@ -70,22 +70,3 @@ def transform_values(x, y, t, *args):
         y_transformed.append(v_projected.values[1])
     return x_transformed, y_transformed
 
-# Method to plot vectors for visual representation
-def plot_vectors(vectors: list[Vector], colors: list[str], labels=CACHE_SIZE) -> None:
-    if len(colors) != len(vectors):
-        raise ValueError(Fore.RED + "Make sure to input a color for all the vectors!" + Style.RESET_ALL)
-    try:
-        for i, (vector, color) in enumerate(zip(vectors, colors)):
-            plt.quiver(0, 0, vector.values[0], vector.values[1], angles="xy", scale_units="xy", scale=0.5, color=color, label = labels[i] if labels else None)
-    except ValueError:
-        print(Fore.RED + "Invalid colour input, please input correct colour!" + Style.RESET_ALL)
-    plt.rcParams["font.size"] = 7.5
-    plt.xlim(-15, 15)
-    plt.ylim(-15, 15)
-    plt.axhline(0, color='black',linewidth=0.5)
-    plt.axvline(0, color='black',linewidth=0.5)
-    plt.title("Linear transformation")
-    plt.grid(True)
-    plt.gca().set_aspect('equal', adjustable='box')
-    plt.legend()
-    plt.show()

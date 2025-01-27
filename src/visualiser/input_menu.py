@@ -46,9 +46,6 @@ class InputGUI(ctk.CTk):
         self.function_info_button.bind("<Enter>", self.button_hover_function_info_button)
         self.function_info_button.bind("<Leave>", self.off_button_hover_function_info_button)
 
-        #self.function_info_label = ctk.CTkLabel(self, text="(*) Times, (/) division, (-) subtraction, (+) addition , (**) to the power", text_color="#87D13C", font=(None, 12, "bold"), width=290, wraplength=290)
-        #self.function_info_label.grid(row=3, column=0, padx=5)
-
         self.function_frame = ctk.CTkFrame(self, width=290, height=384) 
         self.function_frame.grid(row=4, column=0, padx=5, pady=5)
         self.function_frame.grid_propagate(False)
@@ -130,10 +127,8 @@ class InputGUI(ctk.CTk):
 
     # Method to process all inputted parameters and plot an interactive plot of all the transformations
     def plot_functions(self) -> None:
-            
         functionVisualiser = FunctionVisualiserApp(self)
         functionVisualiser.run()
-
 
     def button_hover_function_info_button(self, event) -> None:
         self.function_info_button.configure(border_color="#87D13C")
