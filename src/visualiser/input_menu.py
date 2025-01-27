@@ -12,6 +12,8 @@ warnings.filterwarnings("ignore", category=UserWarning) # Ignore any warnings ab
 # Screen dimensions are stores as strings to allow tkinter to construct screen properly 
 SCREEN_WIDTH = "1000" 
 SCREEN_HEIGHT = "750"
+LIGHT_GREEN = "#87D13C"
+DARK_GREY = "#888888"
 
 # Set the initial theme of the GUI
 ctk.set_appearance_mode("dark") # Setting appearance to dark
@@ -27,19 +29,19 @@ class InputGUI(ctk.CTk):
 
         self.function_entries = []
         
-        self.number_function_label = ctk.CTkLabel(self, text="Number of functions", text_color="#87D13C", font=(None, 20, "bold"), width=300)
+        self.number_function_label = ctk.CTkLabel(self, text="Number of functions", text_color=LIGHT_GREEN, font=(None, 20, "bold"), width=300)
         self.number_function_label.grid(row=0, column=0, padx=5, pady=5)
 
-        self.function_number_entry = ctk.CTkEntry(self, placeholder_text="Enter between 1 to 8 functions:", font= (None, 15), width=300, height=50) 
+        self.function_number_entry = ctk.CTkEntry(self, placeholder_text="Enter between 1 to 8 functions:", text_color=DARK_GREY, font= (None, 15), width=300, height=50)
         self.function_number_entry.grid(row=1, column=0, padx=5, pady=(0, 5))
         self.function_number_entry.bind("<Return>", self.update_function_number)
 
-        self.function_label = ctk.CTkLabel(self, text="Functions", text_color="#87D13C", font=(None, 20, "bold"), width=300)
+        self.function_label = ctk.CTkLabel(self, text="Functions", text_color=LIGHT_GREEN, font=(None, 20, "bold"), width=300)
         self.function_label.grid(row=2, column=0, padx=5, pady=(5, 5))
 
         self.function_info_icon = ctk.CTkImage(Image.open("resources/icons/icons8-info-64.png"))
 
-        self.function_info_button = ctk.CTkButton(self, text=" Info", text_color="#87D13C", image=self.function_info_icon, font=(None, 15, "bold"), fg_color="#242424", hover_color="#242424", border_width=2, border_color="#565b5e", width=100, anchor="w", command=self.open_info_window)
+        self.function_info_button = ctk.CTkButton(self, text=" Info", text_color=LIGHT_GREEN, image=self.function_info_icon, font=(None, 15, "bold"), fg_color="#242424", hover_color="#242424", border_width=2, border_color="#565b5e", width=100, anchor="w", command=self.open_info_window)
         self.function_info_button.grid(row=3, column=0)
         self.function_info_window = None
 
@@ -50,23 +52,23 @@ class InputGUI(ctk.CTk):
         self.function_frame.grid(row=4, column=0, padx=5, pady=5)
         self.function_frame.grid_propagate(False)
 
-        self.bound_label = ctk.CTkLabel(self, text="Graph bounds", text_color="#87D13C", font=(None, 20, "bold"), width=300)
+        self.bound_label = ctk.CTkLabel(self, text="Graph bounds", text_color=LIGHT_GREEN, font=(None, 20, "bold"), width=300)
         self.bound_label.grid(row=5, column=0, padx=5, pady=(5, 5))
 
         self.bound_frame = ctk.CTkFrame(self, width=290)
         self.bound_frame.grid(row=6, column=0, padx=5, pady=(0, 5))
 
-        self.min_x_bound = ctk.CTkEntry(self.bound_frame, placeholder_text="x0:", width=60, height=20)
+        self.min_x_bound = ctk.CTkEntry(self.bound_frame, placeholder_text="x0:", text_color=DARK_GREY, width=60, height=20)
         self.min_x_bound.grid(row=0, column=0, padx=(10, 5), pady=3,)
-        self.max_x_bound = ctk.CTkEntry(self.bound_frame, placeholder_text="x1:", width=60, height=20)
+        self.max_x_bound = ctk.CTkEntry(self.bound_frame, placeholder_text="x1:", text_color=DARK_GREY, width=60, height=20)
         self.max_x_bound.grid(row=0, column=1, padx=5, pady=3)
-        self.min_y_bound = ctk.CTkEntry(self.bound_frame, placeholder_text="y0:", width=60, height=20)
+        self.min_y_bound = ctk.CTkEntry(self.bound_frame, placeholder_text="y0:", text_color=DARK_GREY, width=60, height=20)
         self.min_y_bound.grid(row=0, column=2, padx=5, pady=3)
-        self.max_y_bound = ctk.CTkEntry(self.bound_frame, placeholder_text="y1:", width=60, height=20)
+        self.max_y_bound = ctk.CTkEntry(self.bound_frame, placeholder_text="y1:", text_color=DARK_GREY, width=60, height=20)
         self.max_y_bound.grid(row=0, column=3, padx=(5, 10), pady=3)
 
         self.plot_icon = ctk.CTkImage(Image.open("resources/icons/icons8-graph-64.png"))
-        self.plot_button = ctk.CTkButton(self, text="Plot!", image=self.plot_icon, compound="left", font=(None, 17, "bold"), text_color="#87D13C", fg_color="#242424", hover_color="#242424", border_width=2, border_color="#565b5e", width=288, height=30, command=self.plot_functions)
+        self.plot_button = ctk.CTkButton(self, text="Plot!", image=self.plot_icon, compound="left", font=(None, 17, "bold"), text_color=LIGHT_GREEN, fg_color="#242424", hover_color="#242424", border_width=2, border_color="#565b5e", width=288, height=30, command=self.plot_functions)
         self.plot_button.grid(row=7, column=0, pady=(5,0))
 
         self.plot_button.bind("<Enter>", self.button_hover_plot_button)
@@ -76,9 +78,9 @@ class InputGUI(ctk.CTk):
         self.error_frame.grid(row=8, column=0, pady=5)
         self.error_icon = ctk.CTkImage(Image.open("resources/icons/381599_error_icon.png")) 
         self.error_icon_label = ctk.CTkLabel(self.error_frame, text="")
-        self.error_icon_label.grid(row=0, column=0, padx=(5, 0), pady=3)
+        self.error_icon_label.grid(row=0, column=0, pady=3)
         self.error_label = ctk.CTkLabel(self.error_frame, text="", compound="left", text_color="#fe2828", font=(None, 13, "bold"), width=240, height=40, wraplength=240, padx=10, pady=15)
-        self.error_label.grid(row=0, column=0, padx=20, pady=(5, 0))
+        self.error_label.grid(row=0, column=0, padx=10, pady=(0, 10))
 
         self.level = self.winfo_toplevel()
 
@@ -96,10 +98,10 @@ class InputGUI(ctk.CTk):
         except ValueError:
                 self.error_label.configure(text="Make sure you input a whole number between 1 to 8!", image=self.error_icon)
                 return
-        
+
         self.error_label.configure(text="", image="") # If not errors are raised then remove the content in the error_label
         for i in range(content):
-            entry = ctk.CTkEntry(self.function_frame, placeholder_text=f"f{i+1}:", width=280, text_color="#87D13C")
+            entry = ctk.CTkEntry(self.function_frame, placeholder_text=f"f{i+1}:", text_color=DARK_GREY, font=(None, 12, "bold"), width=280)
             entry.grid(row=i, column=0, padx=5, pady=10, sticky="W")
             self.function_entries.append(entry)
     
@@ -112,9 +114,9 @@ class InputGUI(ctk.CTk):
             self.function_info_window.resizable(False, False)
             function_info_frame = ctk.CTkFrame(self.function_info_window, width=390, height=290)
             function_info_frame.grid(row=0, column=0, padx=5, pady=5)
-            function_info_title_label = ctk.CTkLabel(function_info_frame, text="How to use:", text_color="#87D13C", font=(None, 25, "bold"), width=380, anchor="center", justify="center")
+            function_info_title_label = ctk.CTkLabel(function_info_frame, text="How to use:", text_color=LIGHT_GREEN, font=(None, 25, "bold"), width=380, anchor="center", justify="center")
             function_info_title_label.pack(padx=5, pady=5, fill="x")
-            function_info_label = ctk.CTkLabel(function_info_frame, text="• For general operations: (*) Times, (/) division, (-) subtraction, (+) addition , (**) exponentiation\n\n• Ensure to use exp(x) instead of writing e**x\n\n• Enter in between 1 to 8 valid functions\n\n• Enter in valid graph bounds at the bottom", text_color="#A0A0A0", font=(None, 15, "bold"), width=380, height=250, wraplength=370, anchor="nw", justify="left")
+            function_info_label = ctk.CTkLabel(function_info_frame, text="• For general operations: (*) Times, (/) division, (-) subtraction, (+) addition , (**) exponentiation\n\n• Ensure to use exp(x) instead of writing e**x\n\n• Enter in between 1 to 8 valid functions\n\n• Enter in valid graph bounds at the bottom", text_color=DARK_GREY, font=(None, 15, "bold"), width=380, height=250, wraplength=370, anchor="nw", justify="left")
             function_info_label.pack(padx=5, pady=10, fill="x")
             self.function_info_window.grid_rowconfigure(0, weight=1, minsize=1)
             self.function_info_window.grid_columnconfigure(0, weight=1, minsize=1)
@@ -131,13 +133,13 @@ class InputGUI(ctk.CTk):
         functionVisualiser.run()
 
     def button_hover_function_info_button(self, event) -> None:
-        self.function_info_button.configure(border_color="#87D13C")
+        self.function_info_button.configure(border_color=LIGHT_GREEN)
 
     def off_button_hover_function_info_button(self, event) -> None:
         self.function_info_button.configure(border_color="#565b5e")
 
     def button_hover_plot_button(self, event) -> None:
-        self.plot_button.configure(border_color="#87D13C")
+        self.plot_button.configure(border_color=LIGHT_GREEN)
 
     def off_button_hover_plot_button(self, event) -> None:
         self.plot_button.configure(border_color="#565b5e")
