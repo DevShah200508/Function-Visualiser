@@ -1,5 +1,4 @@
 import customtkinter as ctk
-import numpy as np
 import matplotlib.pyplot as plt
 import warnings
 from colorama import Fore, Style

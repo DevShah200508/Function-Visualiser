@@ -1,9 +1,5 @@
 from functools import lru_cache
 import numpy as np
-import matplotlib.pyplot as plt
-from colorama import Fore, Style
-from future.backports.urllib.parse import MAX_CACHE_SIZE
-
 from .vector import Vector
 from .matrix import Matrix
 
