@@ -20,12 +20,18 @@ SLIDER_POS_2 = (0.1, 0.15, 0.65, 0.03)
 SLIDER_POS_3 = (0.1, 0.20, 0.65, 0.03)
 TRANSFORMATION_SLIDER_POS = (0.85, 0.17, 0.1, 0.1)
 RESET_SLIDER_POS = (0.85, 0.05, 0.1, 0.1)
+HISTORY_SIZE = 5
 
 class FunctionVisualiserApp:
     
     def __init__(self, window) -> None:
         # Storing the custom tkinter window 
         self.window = window
+
+        # Variables for undo and redo functionality
+        self.history = [None] * HISTORY_SIZE
+        self.head = 0
+        self.read = 0
 
         # The Figure
         self.fig = None
@@ -89,6 +95,7 @@ class FunctionVisualiserApp:
             self.selected_lines.append((line, transformation_line))
 
         self.current_data = self.initial_data[:] # This stores the current (x, y) data state of all the functions at any given time
+        self.history[self.head] = {key:val for key, val in enumerate(self.initial_data)} # Add the initial data to the history
         self.rotation_center_point, = self.ax.plot((self.min_x+self.max_x)/2, (self.min_y+self.max_y)/2, color="black", marker="x") # Mark for the center point of rotation
         self.reflection_line, = self.ax.plot(self.x, [0]*len(self.x), linestyle='--', color='grey', label='Line of reflection') # Line of reflection
         self.reflection_line.set_visible(False) # Initially set off the reflection line as the initial transformation will be rotation
@@ -198,6 +205,8 @@ class FunctionVisualiserApp:
         # Mouse click event handlers
         self.fig.canvas.mpl_connect('button_press_event', self.__on_click_place_point)
         self.fig.canvas.mpl_connect('button_press_event', self.__on_click_remove_point)
+        self.fig.canvas.mpl_connect('key_press_event', self.__undo)
+        self.fig.canvas.mpl_connect('key_press_event', self.__redo)
         self.ax.callbacks.connect('xlim_changed', self.__update_textbox_position)
         self.ax.callbacks.connect('ylim_changed', self.__update_textbox_position)
 
@@ -208,7 +217,6 @@ class FunctionVisualiserApp:
         self.__update_rotation_center_point(center_x, center_y) # Update the position of the center point the axes
         self.__transform_plot(tr.rotation, Vector([center_x, center_y]), angle)
         self.fig.canvas.draw_idle()
-
 
     # Method to deal with change in the rotation_center sliders
     def __update_rotation_center_point(self, center_x: float, center_y: float) -> None:
@@ -251,24 +259,41 @@ class FunctionVisualiserApp:
             transformation_line.set_xdata(x1)
             transformation_line.set_ydata(y1)
 
+    # TODO: Rework on logic of data history
     # Perform the transformation, making the transformed function the new starting point
     def __perform_transformation(self, _) -> None:
+
+        if self.head+1 >= HISTORY_SIZE:
+            print("Updating size!")
+            self.history.pop(0) # Remove the first element from the history
+            self.history.append(None) # Append empty slot for the new history
+            # print(len(self.history))
+            self.head -= 1 # Move back the head by one to compensate for lost element
+            self.read -= 1
+
+        print(f"before {self.history}")
+        data = {}
         for index, (line, transformation_line) in enumerate(self.lines):
             x_transformed = transformation_line.get_xdata()
             y_transformed = transformation_line.get_ydata()
+            data[index] = (x_transformed, y_transformed)
             line.set_xdata(x_transformed)
             line.set_ydata(y_transformed)
             self.current_data[index] = (x_transformed, y_transformed) # Set current line position as the current data
+        self.head += 1
+        self.read += 1
+        self.history[self.read] = data # keep track of the previous positions of the functions before transformation
+        print(f"after {self.history}")
 
-        for widget in self.current_widgets:
-            if isinstance(widget, Slider):
-                widget.reset()
+
+        print(len(self.history))
+
+        self.__reset_widgets()
+
         
     # Method to change the sliders based on what transformation is selected 
     def __transformation_selection(self, label) -> None:
-        for widget in self.current_widgets:
-            if isinstance(widget, Slider):
-                widget.reset()
+        self.__reset_widgets()
 
         hide_widgets(self.current_widgets)
         self.current_widgets.clear()
@@ -315,6 +340,46 @@ class FunctionVisualiserApp:
 
         self.fig.canvas.draw_idle()
 
+    # Method to allow undoing a transformation on a plot
+    def __undo(self, event) -> None:
+        print(f"key pressed is {event.key} (IN UNDO!)")
+        if event.key == "ctrl+z":
+        #     if self.head-1 >= 0:
+        #         self.head -= 1
+        #         self.helper()
+                if self.read >= 0:
+                    self.read -= 1
+                    self.set_data()
+                print(f"size of history is {len(self.history)}")
+                print(f"from undo the value of read is {self.read} and head is {self.head}")
+
+
+    # Method to allow redoing a transformation on a plot (if valid redo is available)
+    def __redo(self, event) -> None:
+        if event.key == "ctrl+y":
+            # if self.head+1 <= len(self.history) - 1:
+            #     self.head += 1
+            #     self.helper()
+            if self.read < self.head:
+                self.read += 1
+                self.set_data()
+            print(f"size of history is {len(self.history)}")
+            print(f"from redo the value of read is {self.read} and head is {self.head}")
+
+    def set_data(self):
+        data = self.history[self.read]
+        print(f"data is {data}")
+        for i, (line, transformation_line) in enumerate(self.lines):
+            x0, y0 = data[i]
+            line.set_xdata(x0)
+            line.set_ydata(y0)
+            transformation_line.set_xdata(x0)
+            transformation_line.set_ydata(y0)
+            self.current_data[i] = (x0, y0)
+
+        self.__reset_widgets()
+        self.fig.canvas.draw_idle()
+
     # Function to place a point at a given position in the graph and display the coordinates of it
     def __on_click_place_point(self, event) -> None:
         if event.inaxes is not None and event.key == "control" and event.button == 1:
@@ -352,7 +417,6 @@ class FunctionVisualiserApp:
             
             self.points[:] = new_points
             self.fig.canvas.draw_idle()
-            
 
     # Function to update the position of the coordinates text box with respect to the zoom of the plot
     def __update_textbox_position(self, _) -> None:
@@ -374,9 +438,7 @@ class FunctionVisualiserApp:
 
     # Method to reset any changes to the plot and sliders
     def __reset_plot(self, _) -> None:
-        for widget in self.current_widgets:
-            if isinstance(widget, Slider):
-                widget.reset()
+        self.__reset_widgets()
 
         for line, transformation_line in self.selected_lines:
             index = self.lines.index((line, transformation_line))
@@ -387,6 +449,13 @@ class FunctionVisualiserApp:
             transformation_line.set_ydata(self.initial_data[index][1])
 
         self.fig.canvas.draw_idle()
+
+    # Method to reset all slider widgets
+    def __reset_widgets(self) -> None:
+        for widget in self.current_widgets:
+            if isinstance(widget, Slider):
+                widget.reset()
+
 
     # Method to run the app
     def run(self):
