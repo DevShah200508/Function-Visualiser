@@ -1,6 +1,7 @@
 import warnings
 import matplotlib.pyplot as plt
 import numpy as np
+import functools
 from matplotlib.widgets import Slider, CheckButtons, RadioButtons, Button
 from src.transformations import transformation as tr
 from src.transformations.vector import Vector
@@ -13,6 +14,7 @@ warnings.filterwarnings("ignore", category=RuntimeWarning) # Supress division by
 # Constants that are used later within the script
 PI = np.pi
 RADIOBUTTON_LABELS = ["Rotation", "Shearing", "Scaling", "Reflection", "Translation"]
+RESOLUTION = 0.1
 TEXTBOX_TO_POINT_SCALE = 1/15
 POINT_INCH_SCALE = 1/72
 SLIDER_POS_1 = (0.1, 0.10, 0.65, 0.03)
@@ -21,6 +23,24 @@ SLIDER_POS_3 = (0.1, 0.20, 0.65, 0.03)
 TRANSFORMATION_SLIDER_POS = (0.85, 0.17, 0.1, 0.1)
 RESET_SLIDER_POS = (0.85, 0.05, 0.1, 0.1)
 HISTORY_SIZE = 5
+
+# decorator function to update history
+def update_history(f):
+    @functools.wraps(f)
+    def wrapper(*args, **kwargs):
+        data = {}
+        self = args[0]
+        if self.head+1 >= HISTORY_SIZE:
+            self.history.pop(0)  # Remove the first element from the history
+            self.history.append(None)  # Append empty slot for the new history
+            self.head -= 1  # Move back the head by one to compensate for lost element
+            self.read -= 1
+        f(*args, **kwargs, data=data)
+        self.read += 1
+        self.head = self.read
+        self.history[self.read] = data  # keep track of the previous positions of the functions before transformation
+    return wrapper
+
 
 class FunctionVisualiserApp:
     
@@ -75,9 +95,8 @@ class FunctionVisualiserApp:
     def __setup_functions(self) -> None:
         self.func_arr, self.func_labels = get_functions(self.window) # Retrieve all user inputted functions 
         self.min_x, self.max_x, self.min_y, self.max_y = get_axis_lim(self.window) # Get the axis limits for the domain and range of the graph you want displayed 
-        value = int(np.ceil(max(100 + abs(self.max_x), 100 + abs(self.min_x)))) # Ensures function is plotted out the visible view of the graph 
-        self.x = np.linspace(-value, value, num= value*50) # Initial range values for x
-        
+        value = int(np.ceil(max(100+abs(self.max_x), 100+abs(self.min_x)))) # Ensures function is plotted out the visible view of the graph
+        self.x = np.linspace(-value, value, num=int(value/RESOLUTION)) # Initial range values for x
 
     # Method for the setup of the initial plot
     def __setup_plots(self) -> None:
@@ -259,20 +278,12 @@ class FunctionVisualiserApp:
             transformation_line.set_xdata(x1)
             transformation_line.set_ydata(y1)
 
-    # TODO: Rework on logic of data history
     # Perform the transformation, making the transformed function the new starting point
-    def __perform_transformation(self, _) -> None:
+    @update_history
+    def __perform_transformation(self, _,  data=None) -> None:
+        if data is None:
+            data = {}
 
-        if self.head+1 >= HISTORY_SIZE:
-            print("Updating size!")
-            self.history.pop(0) # Remove the first element from the history
-            self.history.append(None) # Append empty slot for the new history
-            # print(len(self.history))
-            self.head -= 1 # Move back the head by one to compensate for lost element
-            self.read -= 1
-
-        print(f"before {self.history}")
-        data = {}
         for index, (line, transformation_line) in enumerate(self.lines):
             x_transformed = transformation_line.get_xdata()
             y_transformed = transformation_line.get_ydata()
@@ -280,15 +291,9 @@ class FunctionVisualiserApp:
             line.set_xdata(x_transformed)
             line.set_ydata(y_transformed)
             self.current_data[index] = (x_transformed, y_transformed) # Set current line position as the current data
-        self.head += 1
-        self.read += 1
-        self.history[self.read] = data # keep track of the previous positions of the functions before transformation
-        print(f"after {self.history}")
-
-
-        print(len(self.history))
 
         self.__reset_widgets()
+        self.fig.canvas.draw_idle()
 
         
     # Method to change the sliders based on what transformation is selected 
@@ -342,33 +347,22 @@ class FunctionVisualiserApp:
 
     # Method to allow undoing a transformation on a plot
     def __undo(self, event) -> None:
-        print(f"key pressed is {event.key} (IN UNDO!)")
         if event.key == "ctrl+z":
-        #     if self.head-1 >= 0:
-        #         self.head -= 1
-        #         self.helper()
-                if self.read >= 0:
+                if self.read > 0:
                     self.read -= 1
                     self.set_data()
-                print(f"size of history is {len(self.history)}")
-                print(f"from undo the value of read is {self.read} and head is {self.head}")
-
+                print(f"head is {self.head} and read is {self.read}")
 
     # Method to allow redoing a transformation on a plot (if valid redo is available)
     def __redo(self, event) -> None:
         if event.key == "ctrl+y":
-            # if self.head+1 <= len(self.history) - 1:
-            #     self.head += 1
-            #     self.helper()
             if self.read < self.head:
                 self.read += 1
                 self.set_data()
-            print(f"size of history is {len(self.history)}")
-            print(f"from redo the value of read is {self.read} and head is {self.head}")
+            print(f"head is {self.head} and read is {self.read}")
 
     def set_data(self):
         data = self.history[self.read]
-        print(f"data is {data}")
         for i, (line, transformation_line) in enumerate(self.lines):
             x0, y0 = data[i]
             line.set_xdata(x0)
@@ -379,6 +373,21 @@ class FunctionVisualiserApp:
 
         self.__reset_widgets()
         self.fig.canvas.draw_idle()
+
+    # def _update_history(f):
+    #     data = {}
+    #     def wrapper(self, f):
+    #         if self.head + 1 >= HISTORY_SIZE:
+    #             self.history.pop(0)  # Remove the first element from the history
+    #             self.history.append(None)  # Append empty slot for the new history
+    #             self.head -= 1  # Move back the head by one to compensate for lost element
+    #             self.read -= 1
+    #
+    #         f(self, data)
+    #         self.read += 1
+    #         self.head = self.read
+    #         self.history[self.read] = data  # keep track of the previous positions of the functions before transformation
+    #     return wrapper
 
     # Function to place a point at a given position in the graph and display the coordinates of it
     def __on_click_place_point(self, event) -> None:
@@ -437,17 +446,22 @@ class FunctionVisualiserApp:
         self.fig.canvas.draw_idle()
 
     # Method to reset any changes to the plot and sliders
-    def __reset_plot(self, _) -> None:
-        self.__reset_widgets()
+    @update_history
+    def __reset_plot(self, _, data=None) -> None:
+        if data is None:
+            data = {}
 
         for line, transformation_line in self.selected_lines:
             index = self.lines.index((line, transformation_line))
             self.current_data[index] = self.initial_data[index]
-            line.set_xdata(self.initial_data[index][0])
-            line.set_ydata(self.initial_data[index][1])
+            x0, y0 = self.initial_data[index][0], self.initial_data[index][1]
+            line.set_xdata(x0)
+            line.set_ydata(y0)
+            data[index] = (x0, y0)
             transformation_line.set_xdata(self.initial_data[index][0])
             transformation_line.set_ydata(self.initial_data[index][1])
 
+        self.__reset_widgets()
         self.fig.canvas.draw_idle()
 
     # Method to reset all slider widgets
@@ -468,4 +482,5 @@ class FunctionVisualiserApp:
         except:
             print("Error!")
             return
+
 
