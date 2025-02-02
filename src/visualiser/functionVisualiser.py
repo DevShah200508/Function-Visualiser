@@ -317,7 +317,6 @@ class FunctionVisualiserApp:
         self.fig.canvas.draw_idle()
     
     def __transformation_selection_helper(self, rotation_center_visibility, reflection_line_visiblity, *args):
-        print(len(args))
         self.rotation_center_point.set_visible(rotation_center_visibility)
         self.reflection_line.set_visible(reflection_line_visiblity)
         self.current_widgets.extend(list(args))
@@ -345,7 +344,6 @@ class FunctionVisualiserApp:
                 if self.read > 0:
                     self.read -= 1
                     self.set_data()
-                print(f"head is {self.head} and read is {self.read}")
 
     # Method to allow redoing a transformation on a plot (if valid redo is available)
     def __redo(self, event) -> None:
@@ -353,7 +351,6 @@ class FunctionVisualiserApp:
             if self.read < self.head:
                 self.read += 1
                 self.set_data()
-            print(f"head is {self.head} and read is {self.read}")
 
     def set_data(self):
         data = self.history[self.read]
