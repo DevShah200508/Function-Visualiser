@@ -299,35 +299,29 @@ class FunctionVisualiserApp:
     # Method to change the sliders based on what transformation is selected 
     def __transformation_selection(self, label) -> None:
         self.__reset_widgets()
-
         hide_widgets(self.current_widgets)
         self.current_widgets.clear()
-
         match label:
             case "Rotation":
-                self.rotation_center_point.set_visible(True)
-                self.reflection_line.set_visible(False)
-                self.current_widgets.extend([self.rotation_slider, self.rotation_center_x_slider, self.rotation_center_y_slider])
+               self.__transformation_selection_helper(True, False, self.rotation_slider, self.rotation_center_x_slider, self.rotation_center_y_slider)
             case "Shearing":
-                self.rotation_center_point.set_visible(False)
-                self.reflection_line.set_visible(False)
-                self.current_widgets.extend([self.shearing_kx_slider, self.shearing_ky_slider])
+                self.__transformation_selection_helper(False, False, self.shearing_kx_slider, self.shearing_ky_slider)
             case "Scaling": 
-                self.rotation_center_point.set_visible(False)
-                self.reflection_line.set_visible(False)
-                self.current_widgets.extend([self.scaling_kx_slider, self.scaling_ky_slider])
+                self.__transformation_selection_helper(False, False, self.scaling_kx_slider, self.scaling_ky_slider)
             case "Reflection":
-                self.rotation_center_point.set_visible(False)
-                self.reflection_line.set_visible(True)
-                self.current_widgets.extend([self.reflection_slider])
+                self.__transformation_selection_helper(False, True, self.reflection_slider)
             case _:
-                self.rotation_center_point.set_visible(False)
-                self.reflection_line.set_visible(False)
-                self.current_widgets.extend([self.translation_x_slider, self.translation_y_slider])
+                self.__transformation_selection_helper(False, False, self.translation_x_slider, self.translation_y_slider)
 
         show_widgets(self.current_widgets)
         self.fig.canvas.draw_idle()
-
+    
+    def __transformation_selection_helper(self, rotation_center_visibility, reflection_line_visiblity, *args):
+        print(len(args))
+        self.rotation_center_point.set_visible(rotation_center_visibility)
+        self.reflection_line.set_visible(reflection_line_visiblity)
+        self.current_widgets.extend(list(args))
+            
     # Method to deal with changes to functions being selected 
     def __toggle_plot(self, label) -> None:
         index = self.func_labels.index(label) # Finds the index of the label within func_labels
@@ -373,21 +367,6 @@ class FunctionVisualiserApp:
 
         self.__reset_widgets()
         self.fig.canvas.draw_idle()
-
-    # def _update_history(f):
-    #     data = {}
-    #     def wrapper(self, f):
-    #         if self.head + 1 >= HISTORY_SIZE:
-    #             self.history.pop(0)  # Remove the first element from the history
-    #             self.history.append(None)  # Append empty slot for the new history
-    #             self.head -= 1  # Move back the head by one to compensate for lost element
-    #             self.read -= 1
-    #
-    #         f(self, data)
-    #         self.read += 1
-    #         self.head = self.read
-    #         self.history[self.read] = data  # keep track of the previous positions of the functions before transformation
-    #     return wrapper
 
     # Function to place a point at a given position in the graph and display the coordinates of it
     def __on_click_place_point(self, event) -> None:
