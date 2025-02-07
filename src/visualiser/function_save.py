@@ -1,11 +1,8 @@
 import os
 import csv
-
 import numpy as np
-import pandas as pd
 from functools import wraps
 from colorama import Fore, Style
-
 """
 Store data in the form:
 
@@ -49,24 +46,24 @@ class DataSaver:
             if not isinstance(row, dict):
                 raise ValueError("Data should be a list of dictionaries")
             # Ensures that data has been formatted correctly w.r.t the headers in the csv file
-            if not all(key in row for key in self.header):
+            if not (all(key in row for key in self.header) and all(key in self.header for key in row.keys())):
                 raise ValueError(f"Each dictionary must have keys: {'|'.join(self.header)}")
 
     # Method to save the data
     def save(self, data) -> None:
         try:
             self.__validate_data(data)
-            print("hello")
             with open(self.filePath, 'w', newline="") as file:
                 writer = csv.DictWriter(file, fieldnames=self.header, delimiter=",")
                 writer.writeheader()
                 for datum in data:
-                    datum["xdata"] = np.array2string(datum["xdata"], separator=',')
-                    datum["ydata"] = np.array2string(datum["ydata"], separator=',')
-                    writer.writerow(datum)
+                    # Converty numpy array into string representation
+                    xdata = np.array2string(datum["xdata"], separator=',')
+                    ydata = np.array2string(datum["ydata"], separator=',')
+                    writer.writerow({self.header[0]:datum["function_label"], self.header[1]:xdata, self.header[2]:ydata})
             print(Fore.LIGHTGREEN_EX + f"Data successfully saved in {self.filename}" + Style.RESET_ALL)
         except Exception as e:
-            print(Fore.RED + f"Error when trying to save data to {self.filename}\n Error: {e}" + Style.RESET_ALL)
+            print(Fore.RED + f"Error when trying to save data to {self.filename}\nError: {e}" + Style.RESET_ALL)
 
     # Method to read data from a file
     def read(self) -> list[dict]:
@@ -75,12 +72,13 @@ class DataSaver:
             with open(self.filePath, 'r', newline="") as file:
                 reader = csv.DictReader(file, delimiter=",")
                 for row in reader:
+                    # Convert string representation of numpy array back into an array
                     row["xdata"] = np.fromstring(row["xdata"].strip("[]"), sep=",")
                     row["ydata"] = np.fromstring(row["ydata"].strip("[]"), sep=",")
                     data.append(row)
             return data
         except Exception as e:
-            print(Fore.RED + f"Error when trying to read the data from {self.filename}\n Error: {e}" + Style.RESET_ALL)
+            print(Fore.RED + f"Error when trying to read the data from {self.filename}\nError: {e}" + Style.RESET_ALL)
 
     @check_filename
     def set_filename(self, filename) -> None:
@@ -91,17 +89,14 @@ class DataSaver:
         self.location = location
 
 def main() -> None:
-    import numpy as np
-    import ast
+    # Small test
     x = np.linspace(0, 10, 100)
     y = (lambda k: np.sin(k))(x)
     data = [{"function_label":"sin(x)", "xdata":x, "ydata":y}]
     saver = DataSaver("test.csv")
     saver.save(data)
     dataOut = saver.read()
-    print(dataOut[0]["xdata"][0])
-    print(eval(data[0]["xdata"]))
-    assert(np.allclose(dataOut[0]["xdata"], eval(data[0]["xdata"])))
+    assert(np.allclose(dataOut[0]["xdata"], data[0]["xdata"]))
 
 if __name__ == "__main__":
     main()

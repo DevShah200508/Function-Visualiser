@@ -41,7 +41,6 @@ def update_history(f):
         self.history[self.read] = data  # keep track of the previous positions of the functions before transformation
     return wrapper
 
-
 class FunctionVisualiserApp:
     
     def __init__(self, window) -> None:

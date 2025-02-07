@@ -46,3 +46,4 @@ Thumbs.db  # Windows
 # Extras
 tempCodeRunnerFile.py
 pattern*.py
+*.csv
