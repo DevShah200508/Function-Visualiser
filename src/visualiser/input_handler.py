@@ -1,4 +1,5 @@
 import sympy as sp
+from .error_handler import handle_error, reset_error_box
 from src.custom import custom_is_constant, custom_test_valid_function, custom_get_random_color
 from typing import Optional
 
@@ -12,8 +13,8 @@ def get_functions(window, labels=None) -> Optional[tuple]:
         if function_number == 0:    
             raise ValueError
     except ValueError:
-        window.error_label.configure(text='Please select between 1-8 functions before trying to plot!', image=window.error_icon)
-        return 
+        handle_error(window, 'Please select between 1-8 functions before trying to plot!')
+        return
     for i in range(function_number):
         user_input = window.function_entries[i].get()
         try:
@@ -26,9 +27,9 @@ def get_functions(window, labels=None) -> Optional[tuple]:
             funcs.append(func)
             labels.append(f"f{i}: {str(expr)}")
         except:
-            window.error_label.configure(text='Invalid form of function, make sure function is valid and all variables are denoted with the letter "x". Ensure no only constant input! Try again...', image=window.error_icon)
+            handle_error(window, 'Invalid form of function, make sure function is valid and all variables are denoted with the letter "x". Ensure no only constant input! Try again...')
             return
-    window.error_label.configure(text="", image="")
+    reset_error_box(window)
     return funcs, labels
 
 # Method to take the visual bounds of the graph from the user
@@ -38,15 +39,16 @@ def get_axis_lim(window) -> Optional[tuple]:
         if any(input == "" for input in user_input):
             raise ValueError
     except ValueError:
-        window.error_label.configure(text='Please ensure to input a value for each bound', image=window.error_icon)
+        handle_error(window, 'Please ensure to input a value for each bound')
+
         return
     try:
         min_x, max_x, min_y, max_y = [float(bound) for bound in user_input]
         if (max_x <= min_x) or (max_y <= min_y):
             raise ValueError
-        window.error_label.configure(text="", image="")
+        reset_error_box(window)
         return min_x, max_x, min_y, max_y
     except TypeError:
-        window.error_label.configure(text='Make sure you input a whole numbers!', image=window.error_icon)
+        handle_error(window, 'Make sure you input a whole number!')
     except ValueError:
-        window.error_label.configure(text='Make sure you choose a valid range, maximum value cannot be smaller than minimum value!', image=window.error_icon)
+        handle_error(window, 'Make sure you choose a valid range, maximum value cannot be smaller than minimum value!')

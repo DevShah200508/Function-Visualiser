@@ -4,6 +4,8 @@ import warnings
 from colorama import Fore, Style
 from PIL import Image
 from .functionVisualiser import FunctionVisualiserApp
+from .error_handler import handle_error, reset_error_box
+from typing import Optional
 
 warnings.filterwarnings("ignore", category=UserWarning) # Ignore any warnings about CTkImages when using "" to hide an image icon
 
@@ -13,6 +15,8 @@ SCREEN_WIDTH = "1000"
 SCREEN_HEIGHT = "750"
 LIGHT_GREEN = "#87D13C"
 DARK_GREY = "#888888"
+MATTE_RED = "#fe2828"
+FOREGROUND = "#242424"
 
 # Set the initial theme of the GUI
 ctk.set_appearance_mode("dark") # Setting appearance to dark
@@ -22,12 +26,17 @@ class InputGUI(ctk.CTk):
     def __init__(self):
         super().__init__() # call the super class's constructor which is the ctk.CTk() method
 
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=20)
+
+        self.functionVisualiser = None
         self.title("Function Visualiser")
         self.geometry("x".join([SCREEN_WIDTH, SCREEN_HEIGHT]))
         self.resizable(False, False)
 
         self.function_entries = []
-        
+
+        # Function elements
         self.number_function_label = ctk.CTkLabel(self, text="Number of functions", text_color=LIGHT_GREEN, font=(None, 20, "bold"), width=300)
         self.number_function_label.grid(row=0, column=0, padx=5, pady=5)
 
@@ -36,11 +45,11 @@ class InputGUI(ctk.CTk):
         self.function_number_entry.bind("<Return>", self.update_function_number)
 
         self.function_label = ctk.CTkLabel(self, text="Functions", text_color=LIGHT_GREEN, font=(None, 20, "bold"), width=300)
-        self.function_label.grid(row=2, column=0, padx=5, pady=(5, 5))
+        self.function_label.grid(row=2, column=0, padx=5, pady=5)
 
         self.function_info_icon = ctk.CTkImage(Image.open("resources/icons/icons8-info-64.png"))
 
-        self.function_info_button = ctk.CTkButton(self, text=" Info", text_color=LIGHT_GREEN, image=self.function_info_icon, font=(None, 15, "bold"), fg_color="#242424", hover_color="#242424", border_width=2, border_color="#565b5e", width=100, anchor="w", command=self.open_info_window)
+        self.function_info_button = ctk.CTkButton(self, text=" Info", text_color=LIGHT_GREEN, image=self.function_info_icon, font=(None, 15, "bold"), fg_color=FOREGROUND, hover_color=FOREGROUND, border_width=2, border_color="#565b5e", width=100, anchor="w", command=self.open_info_window)
         self.function_info_button.grid(row=3, column=0)
         self.function_info_window = None
 
@@ -51,14 +60,15 @@ class InputGUI(ctk.CTk):
         self.function_frame.grid(row=4, column=0, padx=5, pady=5)
         self.function_frame.grid_propagate(False)
 
+        # Function bound elements
         self.bound_label = ctk.CTkLabel(self, text="Graph bounds", text_color=LIGHT_GREEN, font=(None, 20, "bold"), width=300)
-        self.bound_label.grid(row=5, column=0, padx=5, pady=(5, 5))
+        self.bound_label.grid(row=5, column=0, padx=5, pady=5)
 
         self.bound_frame = ctk.CTkFrame(self, width=290)
         self.bound_frame.grid(row=6, column=0, padx=5, pady=(0, 5))
 
         self.min_x_bound = ctk.CTkEntry(self.bound_frame, placeholder_text="x0:", text_color=DARK_GREY, width=60, height=20)
-        self.min_x_bound.grid(row=0, column=0, padx=(10, 5), pady=3,)
+        self.min_x_bound.grid(row=0, column=0, padx=(10, 5), pady=3)
         self.max_x_bound = ctk.CTkEntry(self.bound_frame, placeholder_text="x1:", text_color=DARK_GREY, width=60, height=20)
         self.max_x_bound.grid(row=0, column=1, padx=5, pady=3)
         self.min_y_bound = ctk.CTkEntry(self.bound_frame, placeholder_text="y0:", text_color=DARK_GREY, width=60, height=20)
@@ -67,21 +77,33 @@ class InputGUI(ctk.CTk):
         self.max_y_bound.grid(row=0, column=3, padx=(5, 10), pady=3)
 
         self.plot_icon = ctk.CTkImage(Image.open("resources/icons/icons8-graph-64.png"))
-        self.plot_button = ctk.CTkButton(self, text="Plot!", image=self.plot_icon, compound="left", font=(None, 17, "bold"), text_color=LIGHT_GREEN, fg_color="#242424", hover_color="#242424", border_width=2, border_color="#565b5e", width=288, height=30, command=self.plot_functions)
+        self.plot_button = ctk.CTkButton(self, text="Plot!", image=self.plot_icon, compound="left", font=(None, 17, "bold"), text_color=LIGHT_GREEN, fg_color=FOREGROUND, hover_color=FOREGROUND, border_width=2, border_color="#565b5e", width=288, height=30, command=self.plot_functions)
         self.plot_button.grid(row=7, column=0, pady=(5,0))
 
         self.plot_button.bind("<Enter>", self.button_hover_plot_button)
         self.plot_button.bind("<Leave>", self.off_button_hover_plot_button)
 
-        self.error_frame = ctk.CTkFrame(self, width=300, fg_color="#242424")
-        self.error_frame.grid(row=8, column=0, pady=5)
+        # Error elements
+        self.error_frame = ctk.CTkFrame(self, fg_color=FOREGROUND)
+        self.error_frame.grid(row=8, column=0, columnspan=2, padx=5, pady=5, sticky="ew")
         self.error_icon = ctk.CTkImage(Image.open("resources/icons/381599_error_icon.png")) 
         self.error_icon_label = ctk.CTkLabel(self.error_frame, text="")
         self.error_icon_label.grid(row=0, column=0, pady=3)
-        self.error_label = ctk.CTkLabel(self.error_frame, text="", compound="left", text_color="#fe2828", font=(None, 13, "bold"), width=240, height=40, wraplength=240, padx=10, pady=15)
+        self.error_label = ctk.CTkLabel(self.error_frame, text="", compound="left", text_color=MATTE_RED, font=(None, 13, "bold"), height=40, padx=10, pady=15, anchor="w")
         self.error_label.grid(row=0, column=0, padx=10, pady=(0, 10))
 
-        self.level = self.winfo_toplevel()
+        # Saving and loading elements
+        self.save_label = ctk.CTkLabel(self, text="Save and Load", text_color=LIGHT_GREEN, font=(None, 20, "bold"), width=400)
+        self.save_label.grid(row=0, column=1, padx=5, pady=5, sticky="w")
+
+
+        # TODO finish off adding the elements below
+        self.save_button = ctk.CTkButton(self)
+
+        self.load_file_frame = ctk.CTkScrollableFrame(self)
+
+        self.load_data_button = ctk.CTkButton(self, text="Load Data", command=self.load_data)
+
 
     # Method to deal the with function_entry input when the submit button is pressed
     def update_function_number(self, event) -> None:
@@ -101,7 +123,7 @@ class InputGUI(ctk.CTk):
         self.error_label.configure(text="", image="") # If not errors are raised then remove the content in the error_label
         for i in range(content):
             entry = ctk.CTkEntry(self.function_frame, placeholder_text=f"f{i+1}:", text_color=DARK_GREY, font=(None, 12, "bold"), width=280)
-            entry.grid(row=i, column=0, padx=5, pady=10, sticky="W")
+            entry.grid(row=i, column=0, padx=5, pady=10, sticky="w")
             self.function_entries.append(entry)
     
     # Function to open the info window when the info button is pressed
@@ -128,8 +150,8 @@ class InputGUI(ctk.CTk):
 
     # Method to process all inputted parameters and plot an interactive plot of all the transformations
     def plot_functions(self) -> None:
-        functionVisualiser = FunctionVisualiserApp(self)
-        functionVisualiser.run()
+        self.functionVisualiser = FunctionVisualiserApp(self)
+        self.functionVisualiser.run()
 
     def button_hover_function_info_button(self, event) -> None:
         self.function_info_button.configure(border_color=LIGHT_GREEN)
@@ -145,7 +167,33 @@ class InputGUI(ctk.CTk):
 
     def show_function_info(self) -> None:
         pass
-    
+
+    # Method to retrieve plot data from the application
+    def retrieve_data(self) -> Optional[list[dict]]:
+        plot = self.functionVisualiser
+        if plot is None or not plot.check_open_figure():
+            raise ValueError
+
+        reset_error_box(self) # Reset error text when data is valid
+        data_array = []
+        func_labels = plot.func_labels
+        current_data = plot.current_data
+        xData, yData = zip(*current_data)
+        bounds = [plot.min_x, plot.max_x, plot.min_y, plot.max_y]
+
+        for i in range(len(func_labels)):
+            data = {"function_label": func_labels[i], "xdata": xData[i], "ydata": yData[i], "bounds":bounds}
+            if i != 0:
+                data["bounds"] = "N/A"
+            data_array.append(data)
+
+        return data_array
+
+    # Run the plot with data
+    def load_data(self, data) -> None:
+        self.functionVisualiser = FunctionVisualiserApp(self)
+        self.functionVisualiser.run(data)
+
     # Method to deal with closing the window properly 
     def on_quit(self):
         plt.close("all")
@@ -165,6 +213,7 @@ class InputGUI(ctk.CTk):
 def gui_main():
     app = InputGUI()
     app.run()
+
 
 if __name__ == "__main__":
     gui_main()

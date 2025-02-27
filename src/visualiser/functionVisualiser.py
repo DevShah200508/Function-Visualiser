@@ -98,19 +98,44 @@ class FunctionVisualiserApp:
         self.x = np.linspace(-value, value, num=int(value/RESOLUTION)) # Initial range values for x
 
     # Method for the setup of the initial plot
-    def __setup_plots(self) -> None:
-         # The figure
-        self.fig, self.ax = plt.subplots() 
-        # Plotting the initial functions
-        for i, f in enumerate(self.func_arr):
-            fx = f(self.x)
-            self.initial_data.append((self.x, fx))
-            color = custom_get_random_color() # Get a random colour for the plot
-            line, = self.ax.plot(self.x, fx, color=color, label=self.func_labels[i]) # Unpack a single item tuple using ','
-            transformation_line, = self.ax.plot(self.x, fx, color=color, alpha=0.30) # Transformation line to show the result of a transformation before it is actually done
-            transformation_line.set_visible(False) # Initially set off the transformation line as it will overlap with the normal line
-            self.lines.append((line, transformation_line))
-            self.selected_lines.append((line, transformation_line))
+    def __setup_plots(self, data=None) -> None:
+        plt.close('all') # Ensures only one plot is ever open
+
+        if data is None:
+             # The figure
+            self.fig, self.ax = plt.subplots()
+            # Plotting the initial functions
+            for index, f in enumerate(self.func_arr):
+                fx = f(self.x)
+                self.initial_data.append((self.x, fx))
+                color = custom_get_random_color() # Get a random colour for the plot
+                line, = self.ax.plot(self.x, fx, color=color, label=self.func_labels[index]) # Unpack a single item tuple using ','
+                transformation_line, = self.ax.plot(self.x, fx, color=color, alpha=0.30) # Transformation line to show the result of a transformation before it is actually done
+                transformation_line.set_visible(False) # Initially set off the transformation line as it will overlap with the normal line
+                self.lines.append((line, transformation_line))
+                self.selected_lines.append((line, transformation_line))
+
+        # Run it with loaded data
+        else:
+            self.fig, self.ax = plt.subplots()
+            self.min_x, self.max_x, self.min_y, self.max_y = data[0]["bounds"]
+            func_labels = []
+            xData = []
+            yData = []
+            for datum in data:
+                func_labels.append(datum["function_labels"])
+                xData.append(datum["x"])
+                yData.append(datum["y"])
+
+            for index in range(len(func_labels)):
+                self.initial_data.append((xData[index], yData[index]))
+                color = custom_get_random_color()
+                line, = self.ax.plot(xData[index], yData[index], color=color, label=func_labels[index])
+                transformation_line, = self.ax.plot(xData[index], yData[index], color=color, alpha=0.30)
+                transformation_line.set_visible(False)
+                self.lines.append((line, transformation_line))
+                self.selected_lines.append((line, transformation_line))
+
 
         self.current_data = self.initial_data[:] # This stores the current (x, y) data state of all the functions at any given time
         self.history[self.head] = {key:val for key, val in enumerate(self.initial_data)} # Add the initial data to the history
@@ -294,7 +319,6 @@ class FunctionVisualiserApp:
         self.__reset_widgets()
         self.fig.canvas.draw_idle()
 
-        
     # Method to change the sliders based on what transformation is selected 
     def __transformation_selection(self, label) -> None:
         self.__reset_widgets()
@@ -314,7 +338,8 @@ class FunctionVisualiserApp:
 
         show_widgets(self.current_widgets)
         self.fig.canvas.draw_idle()
-    
+
+    # Helper method for the transformation_selection method
     def __transformation_selection_helper(self, rotation_center_visibility, reflection_line_visiblity, *args):
         self.rotation_center_point.set_visible(rotation_center_visibility)
         self.reflection_line.set_visible(reflection_line_visiblity)
@@ -439,6 +464,11 @@ class FunctionVisualiserApp:
         self.__reset_widgets()
         self.fig.canvas.draw_idle()
 
+    # Method to check if the current figure is open or not
+    def check_open_figure(self) -> bool:
+        return not self.fig.canvas.manager is None
+
+
     # Method to reset all slider widgets
     def __reset_widgets(self) -> None:
         for widget in self.current_widgets:
@@ -447,10 +477,10 @@ class FunctionVisualiserApp:
 
 
     # Method to run the app
-    def run(self):
+    def run(self, data=None):
         try: # Try except blocks to deal with any issues that may arise with user input 
             self.__setup_functions() # set up the functions and the axes bounds
-            self.__setup_plots() # Making the plots
+            self.__setup_plots(data) # Making the plots
             self.__setup_widgets() # Making the widgets
             self.__setup_event_handlers() # Linking to event handlers
             plt.show()
